@@ -7,6 +7,7 @@ export default {
   meta: {
     icon: "guide",
     title: $t("menus.hsguide"),
+    showLink: false,
     rank: guide
   },
   children: [

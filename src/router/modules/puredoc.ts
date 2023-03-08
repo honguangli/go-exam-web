@@ -8,6 +8,7 @@ export default {
   meta: {
     icon: hot,
     title: "pure-admin-doc",
+    showLink: false,
     rank: doc
   },
   children: [

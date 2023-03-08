@@ -8,6 +8,6 @@ export type Class = {
 
 // 状态
 export enum ClassStatus {
-  Disable,
-  Enable
+  Disable, // 禁用
+  Enable // 正常
 }

@@ -1,6 +1,6 @@
-import { type VNode } from "vue";
+import { VNode } from "vue";
 import { isFunction } from "@pureadmin/utils";
-import { type MessageHandler, ElMessage } from "element-plus";
+import { MessageHandler, ElMessage } from "element-plus";
 
 type messageStyle = "el" | "antd";
 type messageTypes = "info" | "success" | "warning" | "error";

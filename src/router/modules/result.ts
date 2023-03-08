@@ -7,6 +7,7 @@ export default {
   meta: {
     icon: "checkboxCircleLine",
     title: $t("menus.hsResult"),
+    showLink: false,
     rank: result
   },
   children: [

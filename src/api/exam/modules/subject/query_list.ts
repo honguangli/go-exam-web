@@ -6,7 +6,6 @@ import { Subject } from "../../models/subject";
 // 查询科目列表 参数
 export interface QuerySubjectListParam {
   name?: string;
-  type?: number;
   limit: number;
   offset: number;
 }

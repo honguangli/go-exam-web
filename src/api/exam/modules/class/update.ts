@@ -11,7 +11,7 @@ export interface UpdateClassParam {
 }
 
 // 更新班级信息 响应
-export interface UpdateClassResponse {}
+export type UpdateClassResponse = {};
 
 // 更新班级信息
 export const UpdateClass = (param: UpdateClassParam) => {

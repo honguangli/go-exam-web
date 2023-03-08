@@ -7,6 +7,7 @@ export default {
   meta: {
     title: $t("menus.hsmenus"),
     icon: "histogram",
+    showLink: false,
     rank: nested
   },
   children: [

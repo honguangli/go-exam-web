@@ -6,6 +6,7 @@ export default {
   redirect: "/about/index",
   meta: {
     title: $t("menus.hsAbout"),
+    showLink: false,
     rank: about
   },
   children: [

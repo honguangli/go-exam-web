@@ -1,14 +1,16 @@
-import dayjs from "dayjs";
 import { message } from "@/utils/message";
-import { ElMessageBox } from "element-plus";
 import { type PaginationProps } from "@pureadmin/table";
-import { reactive, ref, computed, onMounted, shallowRef } from "vue";
-import {
-  QueryQuestionList,
-  QueryQuestionListResponse
-} from "@/api/exam/modules/question/query_list";
+import { reactive, ref, computed, onMounted } from "vue";
 import { handleResponse } from "@/api/exam/client/client";
-import { delay } from "@pureadmin/utils";
+import {
+  QuerySubjectList,
+  QuerySubjectListResponse
+} from "@/api/exam/modules/subject/query_list";
+import { CreateSubject } from "@/api/exam/modules/subject/create";
+import { Subject } from "@/api/exam/models/subject";
+import { UpdateSubject } from "@/api/exam/modules/subject/update";
+import { DeleteSubject } from "@/api/exam/modules/subject/delete";
+import { FormInstance, FormRules } from "element-plus";
 
 export function useQuestion() {
   // 筛选表单
@@ -27,7 +29,6 @@ export function useQuestion() {
     currentPage: 1,
     background: true
   });
-  const switchLoadMap = ref({});
   // 表格列
   const columns: TableColumnList = [
     {
@@ -48,52 +49,14 @@ export function useQuestion() {
       minWidth: 100
     },
     {
-      label: "题干",
+      label: "名称",
       prop: "name",
       minWidth: 200
     },
     {
-      label: "类型",
-      prop: "type",
-      minWidth: 150,
-      cellRenderer: ({ row, props }) => (
-        <el-tag
-          size={props.size}
-          type={row.type === 1 ? "danger" : ""}
-          effect="plain"
-        >
-          {row.type === 1 ? "内置" : "自定义"}
-        </el-tag>
-      )
-    },
-    {
-      label: "显示顺序",
-      prop: "sort",
-      minWidth: 100
-    },
-    {
-      label: "状态",
-      minWidth: 130,
-      cellRenderer: scope => (
-        <el-switch
-          size={scope.props.size === "small" ? "small" : "default"}
-          loading={switchLoadMap.value[scope.index]?.loading}
-          v-model={scope.row.status}
-          active-value={1}
-          inactive-value={0}
-          active-text="已开启"
-          inactive-text="已关闭"
-          inline-prompt
-          //onChange={() => onChange(scope as any)}
-        />
-      )
-    },
-    {
-      label: "创建时间",
-      minWidth: 180,
-      prop: "createTime",
-      formatter: ({ createTime }) =>
-        dayjs(createTime).format("YYYY-MM-DD HH:mm:ss")
+      label: "说明",
+      prop: "desc",
+      minWidth: 250
     },
     {
       label: "操作",
@@ -105,24 +68,32 @@ export function useQuestion() {
 
   // 编辑对话框
   const editDialogVisible = ref(false);
-  const editDialogTitle = ref("新增试题");
+  const editDialogTitle = ref("新增科目");
   // 编辑表单
+  const editFormRef = ref<FormInstance>();
   const editForm = reactive({
     id: 0,
-    subject_id: null,
     name: "",
-    type: 0,
-    content: "",
-    tips: "",
-    analysis: "",
-    difficulty: "",
-    score: 0,
-    memo: ""
+    desc: ""
   });
-  // 编辑器
-  const editorRef = shallowRef();
-  const toolbarConfig: any = { excludeKeys: "fullScreen" };
-  const editorConfig = { placeholder: "请输入内容..." };
+  const editRule = reactive<FormRules>({
+    name: [
+      {
+        required: true,
+        max: 50,
+        message: "请输入不超过50字符的科目名称",
+        trigger: "blur"
+      }
+    ],
+    desc: [
+      {
+        required: false,
+        max: 255,
+        message: "请输入不超过255字符数的科目说明",
+        trigger: "blur"
+      }
+    ]
+  });
 
   const buttonClass = computed(() => {
     return [
@@ -134,73 +105,107 @@ export function useQuestion() {
     ];
   });
 
-  function onChange({ row, index }) {
-    ElMessageBox.confirm(
-      `确认要<strong>${
-        row.status === 0 ? "停用" : "启用"
-      }</strong><strong style='color:var(--el-color-primary)'>${
-        row.name
-      }</strong>角色吗?`,
-      "系统提示",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-        dangerouslyUseHTMLString: true,
-        draggable: true
+  function showEditDialog(type: "create" | "edit", row?: Subject) {
+    if (type === "edit") {
+      editDialogVisible.value = true;
+      editDialogTitle.value = "编辑科目";
+      editForm.id = row?.id;
+      editForm.name = row?.name;
+      editForm.desc = row?.desc;
+    } else {
+      editDialogVisible.value = true;
+      editDialogTitle.value = "新增科目";
+    }
+  }
+
+  function submitEditForm() {
+    editFormRef.value.validate((valid, fields) => {
+      if (!valid) {
+        console.log("error submit!", fields);
+        return;
       }
-    )
-      .then(() => {
-        switchLoadMap.value[index] = Object.assign(
-          {},
-          switchLoadMap.value[index],
-          {
-            loading: true
-          }
-        );
-        setTimeout(() => {
-          switchLoadMap.value[index] = Object.assign(
-            {},
-            switchLoadMap.value[index],
-            {
-              loading: false
-            }
-          );
-          message("已成功修改角色状态", {
+
+      if (editForm.id === 0) {
+        // 创建
+        CreateSubject({
+          name: editForm.name,
+          desc: editForm.desc
+        })
+          .then(res => {
+            handleResponse(res, () => {
+              message(res.msg, {
+                type: "success"
+              });
+              editDialogVisible.value = false;
+              editForm.id = 0;
+              editForm.name = "";
+              editForm.desc = "";
+              onSearch();
+            });
+          })
+          .catch(err => {
+            console.log(err);
+            message("操作失败", {
+              type: "error"
+            });
+          });
+        return;
+      }
+
+      // 更新
+      UpdateSubject({
+        id: editForm.id,
+        name: editForm.name,
+        desc: editForm.desc
+      })
+        .then(res => {
+          handleResponse(res, () => {
+            message(res.msg, {
+              type: "success"
+            });
+            editDialogVisible.value = false;
+            editForm.id = 0;
+            editForm.name = "";
+            editForm.desc = "";
+            onSearch();
+          });
+        })
+        .catch(err => {
+          console.log(err);
+          message("操作失败", {
+            type: "error"
+          });
+        });
+    });
+  }
+
+  function handleDelete(row: Subject) {
+    // 删除
+    DeleteSubject({
+      id: row.id
+    })
+      .then(res => {
+        handleResponse(res, () => {
+          message(res.msg, {
             type: "success"
           });
-        }, 300);
+          onSearch();
+        });
       })
-      .catch(() => {
-        row.status === 0 ? (row.status = 1) : (row.status = 0);
+      .catch(err => {
+        console.log(err);
+        message("操作失败", {
+          type: "error"
+        });
       });
   }
 
-  function handleCreate() {
-    editDialogVisible.value = true;
-    editDialogTitle.value = "新增试题";
-  }
-
-  function handleUpdate(row) {
-    console.log(row);
-    editDialogVisible.value = true;
-    editDialogTitle.value = "编辑试题";
-  }
-
-  function handleDelete(row) {
-    console.log(row);
-  }
-
   function handleSizeChange(val: number) {
-    console.log(`${val} items per page`);
-
     pagination.pageSize = val;
     onSearch();
   }
 
   function handleCurrentChange(val: any) {
-    console.log(`current page: ${val}`);
-
     pagination.currentPage = val;
     onSearch();
   }
@@ -210,22 +215,17 @@ export function useQuestion() {
   }
 
   async function onSearch() {
-    console.log("search", pagination.pageSize, pagination.currentPage);
     loading.value = true;
-    const res = await QueryQuestionList({
+    const res = await QuerySubjectList({
       name: searchForm.name,
-      type: parseInt(searchForm.type) || 0,
       limit: pagination.pageSize,
       offset: (pagination.currentPage - 1) * pagination.pageSize
     });
 
-    handleResponse(res, (data: QueryQuestionListResponse) => {
-      console.log("handle", data);
+    handleResponse(res, (data: QuerySubjectListResponse) => {
       dataList.value = data.list;
       pagination.total = data.total;
-      setTimeout(() => {
-        loading.value = false;
-      }, 500);
+      loading.value = false;
     });
   }
 
@@ -247,15 +247,14 @@ export function useQuestion() {
     pagination,
     editDialogVisible,
     editDialogTitle,
+    editFormRef,
     editForm,
-    toolbarConfig,
-    editorRef,
-    editorConfig,
+    editRule,
     buttonClass,
     onSearch,
     resetForm,
-    handleCreate,
-    handleUpdate,
+    showEditDialog,
+    submitEditForm,
     handleDelete,
     handleSizeChange,
     handleCurrentChange,

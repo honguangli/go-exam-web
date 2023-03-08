@@ -102,8 +102,20 @@ menus:
   hsTree: Big Data Tree
   hsMenuoverflow: Menu Overflow Show Tooltip Text
   hsChildMenuoverflow: Child Menu Overflow Show Tooltip Text
-  hsExam: Exam Manage
-  hsQuestion: Question Manage
+
+  lghExamDB: Exam DB Manage
+  lghSubject: Subject Manage
+  lghKnowledge: Knowledge Manage
+  lghQuestion: Question Manage
+  lghExam: Exam Manage
+  lghPaper: Paper Manage
+  lghPlan: Plan Manage
+  lghUser: User Manage
+  lghPermission: Permission Manage
+  lghRole: Role Manage
+  lghTeacher: Teacher Manage
+  lghStudent: Student Manage
+  lghClass: Class Manage
 status:
   hsLoad: Loading...
 login:

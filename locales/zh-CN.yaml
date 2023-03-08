@@ -102,8 +102,20 @@ menus:
   hsTree: 大数据树业务组件
   hsMenuoverflow: 目录超出显示 Tooltip 文字提示
   hsChildMenuoverflow: 菜单超出显示 Tooltip 文字提示
-  hsExam: 考试管理
-  hsQuestion: 试题管理
+
+  lghExamDB: 题库管理
+  lghSubject: 科目管理
+  lghKnowledge: 知识点管理
+  lghQuestion: 试题管理
+  lghExam: 考试管理
+  lghPaper: 试卷管理
+  lghPlan: 考试管理
+  lghUser: 用户管理
+  lghPermission: 权限管理
+  lghRole: 角色管理
+  lghTeacher: 教师管理
+  lghStudent: 学生管理
+  lghClass: 班级管理
 status:
   hsLoad: 加载中...
 login:

@@ -7,6 +7,7 @@ export default {
   meta: {
     icon: "ubuntuFill",
     title: $t("menus.hsAble"),
+    showLink: false,
     rank: able
   },
   children: [

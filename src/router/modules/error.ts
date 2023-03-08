@@ -8,6 +8,7 @@ export default {
     icon: "informationLine",
     // showLink: false,
     title: $t("menus.hsabnormal"),
+    showLink: false,
     rank: error
   },
   children: [

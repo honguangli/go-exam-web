@@ -26,6 +26,15 @@ const systemRouter = {
       }
     },
     {
+      path: "/system/subject",
+      component: "/system/role/index",
+      name: "subject2",
+      meta: {
+        title: "menus.lghSubject",
+        roles: ["admin"]
+      }
+    },
+    {
       path: "/system/role/index",
       name: "Role",
       meta: {
@@ -201,9 +210,11 @@ export default [
     url: "/getAsyncRoutes",
     method: "get",
     response: () => {
+      console.log(systemRouter, permissionRouter, frameRouter, tabsRouter);
       return {
         success: true,
-        data: [systemRouter, permissionRouter, frameRouter, tabsRouter]
+        //data: [systemRouter, permissionRouter, frameRouter, tabsRouter]
+        data: []
       };
     }
   }

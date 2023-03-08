@@ -4,11 +4,14 @@ import { genParam, ResponseBody } from "../../client/client";
 
 // 删除班级 参数
 export interface DeleteClassParam {
-  ids: Array<number>;
+  id?: number;
+  list?: Array<number>;
 }
 
 // 删除班级 响应
-export interface DeleteClassResponse {}
+export interface DeleteClassResponse {
+  num: number;
+}
 
 // 删除班级
 export const DeleteClass = (param: DeleteClassParam) => {

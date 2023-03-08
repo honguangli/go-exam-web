@@ -7,6 +7,7 @@ export default {
   meta: {
     icon: "setUp",
     title: $t("menus.hsflowChart"),
+    showLink: false,
     rank: flowchart
   },
   children: [

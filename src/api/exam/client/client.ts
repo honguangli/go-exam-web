@@ -1,6 +1,7 @@
 import { nanoid } from "nanoid";
 import md5 from "crypto-js/md5";
 import { dayjs } from "@/utils/dayjs";
+import { message } from "@/utils/message";
 
 export const baseUrlApi = (url: string) => `/exam/api${url}`;
 // process.env.NODE_ENV === "development"
@@ -94,6 +95,9 @@ export const handleResponse = (
   // 异常逻辑
   if (failure === void 0) {
     console.log(msg);
+    message(msg, {
+      type: "error"
+    });
     return;
   }
 

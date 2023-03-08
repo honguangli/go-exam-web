@@ -4,12 +4,13 @@ import { genParam, ResponseBody } from "../../client/client";
 
 // 更新科目信息 参数
 export interface UpdateSubjectParam {
-  name: string; // string
-  desc: string; // string
+  id: number;
+  name: string;
+  desc: string;
 }
 
 // 更新科目信息 响应
-export interface UpdateSubjectResponse {}
+export type UpdateSubjectResponse = {};
 
 // 更新科目信息
 export const UpdateSubject = (param: UpdateSubjectParam) => {

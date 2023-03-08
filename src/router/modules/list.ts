@@ -7,6 +7,7 @@ export default {
   meta: {
     icon: "listCheck",
     title: $t("menus.hsList"),
+    showLink: false,
     rank: list
   },
   children: [

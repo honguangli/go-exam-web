@@ -7,6 +7,7 @@ export default {
   meta: {
     icon: "edit",
     title: $t("menus.hseditor"),
+    showLink: false,
     rank: editor
   },
   children: [

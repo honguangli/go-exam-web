@@ -8,6 +8,7 @@ export default {
   meta: {
     icon: "terminalWindowLine",
     title: $t("menus.hsFormDesign"),
+    showLink: false,
     rank: formdesign
   },
   children: [
