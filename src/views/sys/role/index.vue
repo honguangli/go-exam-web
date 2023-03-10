@@ -1,18 +1,15 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { useHook } from "./hook";
+import { useQuestion } from "./hook";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 
 import Delete from "@iconify-icons/ep/delete";
 import EditPen from "@iconify-icons/ep/edit-pen";
+import Role from "@iconify-icons/ri/admin-line";
 import Search from "@iconify-icons/ep/search";
 import Refresh from "@iconify-icons/ep/refresh";
 import AddFill from "@iconify-icons/ri/add-circle-line";
-
-import Editor from "@/components/Editor/index.vue";
-
-import { QuestionType } from "@/api/exam/models/question";
 
 const formRef = ref();
 const {
@@ -21,20 +18,29 @@ const {
   columns,
   dataList,
   pagination,
-  editDialogVisible,
+  permissionTableRef,
+  permissionDataList,
+  permissionLoading,
+  permissionColumns,
   editDialogTitle,
+  editDialogVisible,
+  authDialogTitle,
+  authDialogVisible,
   editFormRef,
   editForm,
   editFormRule,
   onSearch,
+  onSearchPermission,
   resetForm,
   showEditDialog,
+  showAuthDialog,
   submitEditForm,
+  submitAuth,
   handleDelete,
   handleSizeChange,
   handleCurrentChange,
   handleSelectionChange
-} = useHook();
+} = useQuestion();
 </script>
 
 <template>
@@ -45,30 +51,31 @@ const {
       :model="searchForm"
       class="bg-bg_color w-[99/100] pl-8 pt-4"
     >
-      <el-form-item label="题干：" prop="name">
+      <el-form-item label="角色名称：" prop="name">
         <el-input
           v-model="searchForm.name"
-          placeholder="请输入题干"
+          placeholder="请输入角色名称："
           clearable
           class="!w-[200px]"
         />
       </el-form-item>
-      <el-form-item label="题型：" prop="type">
+      <el-form-item label="角色代码：" prop="code">
+        <el-input
+          v-model="searchForm.code"
+          placeholder="请输入角色代码："
+          clearable
+          class="!w-[200px]"
+        />
+      </el-form-item>
+      <el-form-item label="状态：" prop="status">
         <el-select
-          v-model="searchForm.type"
-          placeholder="请选择题型"
+          v-model="searchForm.status"
+          placeholder="请选择状态"
           clearable
           class="!w-[180px]"
         >
-          <el-option label="单选题" value="1" />
-          <el-option label="多选题" value="2" />
-          <el-option label="判断题" value="3" />
-          <el-option label="填空题" value="4" />
-          <el-option label="多项填空题" value="5" />
-          <el-option label="简答题" value="6" />
-          <el-option label="多项简答题" value="7" />
-          <el-option label="文件题" value="8" />
-          <el-option label="多项文件题" value="9" />
+          <el-option label="禁用" value="0" />
+          <el-option label="正常" value="1" />
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -86,14 +93,14 @@ const {
       </el-form-item>
     </el-form>
 
-    <PureTableBar title="试题列表" @refresh="onSearch">
+    <PureTableBar title="角色列表" @refresh="onSearch">
       <template #buttons>
         <el-button
           type="primary"
           :icon="useRenderIcon(AddFill)"
           @click="showEditDialog('create')"
         >
-          新增试题
+          新增角色
         </el-button>
       </template>
       <template v-slot="{ size, checkList }">
@@ -128,7 +135,7 @@ const {
             >
               编辑
             </el-button>
-            <el-popconfirm title="是否确认删除?">
+            <el-popconfirm title="是否确认删除?" @confirm="handleDelete(row)">
               <template #reference>
                 <el-button
                   class="reset-margin"
@@ -136,12 +143,21 @@ const {
                   type="primary"
                   :size="size"
                   :icon="useRenderIcon(Delete)"
-                  @click="handleDelete(row)"
                 >
                   删除
                 </el-button>
               </template>
             </el-popconfirm>
+            <el-button
+              class="reset-margin"
+              link
+              type="primary"
+              :size="size"
+              :icon="useRenderIcon(Role)"
+              @click="showAuthDialog(row)"
+            >
+              授权
+            </el-button>
           </template>
         </pure-table>
       </template>
@@ -150,7 +166,7 @@ const {
     <el-dialog
       v-model="editDialogVisible"
       :title="editDialogTitle"
-      width="80%"
+      width="50%"
       draggable
       center
       align-center
@@ -163,81 +179,46 @@ const {
           :rules="editFormRule"
           label-position="top"
         >
-          <el-form-item prop="subject_id" label="科目">
-            <el-select
-              v-model="editForm.subject_id"
-              placeholder="请选择科目"
-              style="width: 50%"
-            >
-              <el-option label="Zone one" :value="1" />
-              <el-option label="Zone two" :value="2" />
-            </el-select>
-          </el-form-item>
-          <el-form-item prop="knowledge_ids" label="知识点">
-            <el-select
-              v-model="editForm.knowledge_ids"
-              placeholder="请选择知识点"
-              style="width: 50%"
-            >
-              <el-option label="Zone one" :value="1" />
-              <el-option label="Zone two" :value="2" />
-            </el-select>
-          </el-form-item>
-          <el-form-item prop="type" label="题型">
-            <el-radio-group v-model.number="editForm.type" size="large">
-              <el-space wrap>
-                <el-radio label="单选题" :value="1" border />
-                <el-radio label="多选题" :value="2" border />
-                <el-radio label="判断题" :value="3" border />
-                <el-radio label="填空题" :value="4" border />
-                <el-radio label="多项填空题" :value="5" border />
-                <el-radio label="简答题" :value="6" border />
-                <el-radio label="多项简答题" :value="7" border />
-                <el-radio label="文件题" :value="8" border />
-                <el-radio label="多项文件题" :value="9" border />
-              </el-space>
-            </el-radio-group>
-          </el-form-item>
-          <el-form-item prop="difficulty" label="难度">
-            <el-radio-group v-model.number="editForm.difficulty" size="large">
-              <el-space wrap>
-                <el-radio label="简单" :value="1" border />
-                <el-radio label="较简单" :value="2" border />
-                <el-radio label="普通" :value="3" border />
-                <el-radio label="较难" :value="4" border />
-                <el-radio label="困难" :value="5" border />
-              </el-space>
-            </el-radio-group>
-          </el-form-item>
-          <el-form-item prop="score" label="分数">
-            <el-input-number v-model="editForm.score" :min="1" :max="100" />
-          </el-form-item>
-          <el-form-item prop="name" label="题干">
+          <el-form-item prop="name" label="名称">
             <el-input
               v-model="editForm.name"
-              type="textarea"
-              maxlength="1000"
-              minlength="1"
+              maxlength="50"
               show-word-limit
-              placeholder="请输入"
-              :autosize="{ minRows: 3, maxRows: 6 }"
+              placeholder="请输入角色名称"
               style="width: 80%"
             />
           </el-form-item>
-          <el-form-item prop="content" label="题干">
-            <Editor v-model="editForm.content" />
+          <el-form-item prop="code" label="代码">
+            <el-input
+              v-model="editForm.code"
+              maxlength="50"
+              show-word-limit
+              placeholder="请输入角色代码"
+              style="width: 80%"
+            />
           </el-form-item>
-          <template v-if="editForm.type === QuestionType.ChoiceSingle" />
-          <template v-else-if="editForm.type === QuestionType.ChoiceMulti" />
-          <template v-else-if="editForm.type === QuestionType.Judge" />
-          <template v-else-if="editForm.type === QuestionType.BlankSingle" />
-          <template v-else-if="editForm.type === QuestionType.BlankMulti" />
-          <template v-else-if="editForm.type === QuestionType.AnswerSingle" />
-          <template v-else-if="editForm.type === QuestionType.AnswerMulti" />
-          <template v-else-if="editForm.type === QuestionType.FileSingle" />
-          <template v-else-if="editForm.type === QuestionType.FileMulti" />
-          <el-form-item prop="analysis" label="解析">
-            <Editor v-model="editForm.analysis" />
+          <el-form-item prop="status" label="状态">
+            <el-radio-group v-model.number="editForm.status">
+              <el-space wrap>
+                <el-radio :label="1" border>正常</el-radio>
+                <el-radio :label="0" border>禁用</el-radio>
+              </el-space>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item prop="seq" label="序号">
+            <el-input-number v-model="editForm.seq" :min="1" :max="999999" />
+          </el-form-item>
+          <el-form-item prop="memo" label="备注">
+            <el-input
+              v-model="editForm.memo"
+              type="textarea"
+              minlength="1"
+              maxlength="255"
+              show-word-limit
+              placeholder="请输入备注"
+              :autosize="{ minRows: 3, maxRows: 6 }"
+              style="width: 80%"
+            />
           </el-form-item>
         </el-form>
       </el-scrollbar>
@@ -245,6 +226,52 @@ const {
         <span class="dialog-footer">
           <el-button @click="editDialogVisible = false">取消</el-button>
           <el-button type="primary" @click="submitEditForm">提交</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <el-dialog
+      v-model="authDialogVisible"
+      :title="authDialogTitle"
+      width="80vw"
+      draggable
+      center
+      align-center
+      destroy-on-close
+    >
+      <el-scrollbar max-height="80vh">
+        <PureTableBar
+          title="权限列表"
+          @refresh="onSearchPermission"
+          :tableRef="permissionTableRef?.getTableRef()"
+          :check-list="['勾选列']"
+        >
+          <template v-slot="{ size, checkList }">
+            <pure-table
+              border
+              ref="permissionTableRef"
+              align-whole="center"
+              showOverflowTooltip
+              table-layout="auto"
+              :loading="permissionLoading"
+              :size="size"
+              :data="permissionDataList"
+              :columns="permissionColumns"
+              :checkList="checkList"
+              row-key="id"
+              default-expand-all
+              :header-cell-style="{
+                background: 'var(--el-table-row-hover-bg-color)',
+                color: 'var(--el-text-color-primary)'
+              }"
+            />
+          </template>
+        </PureTableBar>
+      </el-scrollbar>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="authDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitAuth">提交</el-button>
         </span>
       </template>
     </el-dialog>

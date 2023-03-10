@@ -15,6 +15,10 @@ const props = {
   /** 对于树形表格，如果想启用展开和折叠功能，传入当前表格的ref即可 */
   tableRef: {
     type: Object as PropType<any>
+  },
+  checkList: {
+    type: Array<string>,
+    default: []
   }
 };
 
@@ -24,7 +28,7 @@ export default defineComponent({
   emits: ["refresh"],
   setup(props, { emit, slots, attrs }) {
     const buttonRef = ref();
-    const checkList = ref([]);
+    const checkList = ref(props.checkList);
     const size = ref("default");
     const isExpandAll = ref(true);
     const loading = ref(false);

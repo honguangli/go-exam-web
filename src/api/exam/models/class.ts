@@ -11,3 +11,27 @@ export enum ClassStatus {
   Disable, // 禁用
   Enable // 正常
 }
+
+// 格式化状态文本
+export const formatClassStatusText = (v: ClassStatus) => {
+  switch (v) {
+    case ClassStatus.Disable:
+      return "禁用";
+    case ClassStatus.Enable:
+      return "正常";
+    default:
+      return "异常";
+  }
+};
+
+// 获取状态标签
+export const getClassStatusTagType = (v: ClassStatus) => {
+  switch (v) {
+    case ClassStatus.Disable:
+      return "danger";
+    case ClassStatus.Enable:
+      return "success";
+    default:
+      return "warning";
+  }
+};

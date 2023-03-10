@@ -10,8 +10,6 @@ export interface UpdateRoleParam {
   code: string; // string
   seq: number; // int
   status: RoleStatus; // int
-  create_time: number; // int
-  update_time: number; // int
   memo: string; // string
 }
 

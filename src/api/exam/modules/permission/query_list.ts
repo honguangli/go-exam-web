@@ -5,8 +5,11 @@ import { Permission } from "../../models/permission";
 
 // 查询权限列表 参数
 export interface QueryPermissionListParam {
+  type: number;
+  status: number;
+  path?: string;
   name?: string;
-  type?: number;
+  meta_title?: string;
   limit: number;
   offset: number;
 }

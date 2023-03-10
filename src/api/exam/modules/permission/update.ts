@@ -7,6 +7,7 @@ export interface UpdatePermissionParam {
   id: number; // int
   type: number; // int
   pid: number; // int
+  code: string; // string
   status: number; // int
   path: string; // string
   name: string; // string
@@ -22,8 +23,6 @@ export interface UpdatePermissionParam {
   meta_frame_loading: number; // int
   meta_hidden_tag: number; // int
   meta_rank: number; // int
-  create_time: number; // int
-  update_time: number; // int
   memo: string; // string
 }
 

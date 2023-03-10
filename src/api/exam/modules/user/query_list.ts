@@ -6,7 +6,8 @@ import { User } from "../../models/user";
 // 查询用户列表 参数
 export interface QueryUserListParam {
   name?: string;
-  type?: number;
+  type: number;
+  status: number;
   limit: number;
   offset: number;
 }

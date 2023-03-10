@@ -1,12 +1,12 @@
 import { http } from "@/utils/http";
 import Api from "../../api/api";
 import { genParam, ResponseBody } from "../../client/client";
-import { Class } from "../../models/class";
+import { Class, ClassStatus } from "../../models/class";
 
 // 查询班级列表 参数
 export interface QueryClassListParam {
   name?: string;
-  type?: number;
+  status?: ClassStatus;
   limit: number;
   offset: number;
 }

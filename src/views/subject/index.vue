@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { useQuestion } from "./hook";
+import { useHook } from "./hook";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 
@@ -9,10 +9,6 @@ import EditPen from "@iconify-icons/ep/edit-pen";
 import Search from "@iconify-icons/ep/search";
 import Refresh from "@iconify-icons/ep/refresh";
 import AddFill from "@iconify-icons/ri/add-circle-line";
-
-defineOptions({
-  name: "Question"
-});
 
 const formRef = ref();
 const {
@@ -34,7 +30,7 @@ const {
   handleSizeChange,
   handleCurrentChange,
   handleSelectionChange
-} = useQuestion();
+} = useHook();
 </script>
 
 <template>

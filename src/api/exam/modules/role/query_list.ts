@@ -1,12 +1,15 @@
 import { http } from "@/utils/http";
 import Api from "../../api/api";
 import { genParam, ResponseBody } from "../../client/client";
-import { Role } from "../../models/role";
+import { Role, RoleStatus } from "../../models/role";
 
 // 查询角色列表 参数
 export interface QueryRoleListParam {
   name?: string;
-  type?: number;
+  code?: string;
+  status: RoleStatus;
+  sort: string;
+  desc: string;
   limit: number;
   offset: number;
 }

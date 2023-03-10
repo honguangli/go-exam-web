@@ -31,6 +31,7 @@ const Question = {
 // 权限
 const Permission = {
   QueryList: prefix + "/permission/list",
+  QueryAll: prefix + "/permission/all",
   QueryDetail: prefix + "/permission/detail",
   Create: prefix + "/permission/create",
   Update: prefix + "/permission/update",
@@ -40,11 +41,13 @@ const Permission = {
 // 角色
 const Role = {
   QueryList: prefix + "/role/list",
+  QueryAll: prefix + "/role/all",
   QueryDetail: prefix + "/role/detail",
   Create: prefix + "/role/create",
   Update: prefix + "/role/update",
-  UpdatePermission: prefix + "/role/permission",
-  Delete: prefix + "/role/delete"
+  Delete: prefix + "/role/delete",
+  QueryPermissionList: prefix + "/role/permission/list",
+  AuthPermission: prefix + "/role/permission/auth"
 };
 
 // 用户
@@ -53,8 +56,11 @@ const User = {
   QueryDetail: prefix + "/user/detail",
   Create: prefix + "/user/create",
   Update: prefix + "/user/update",
-  UpdateRole: prefix + "/user/role",
-  Delete: prefix + "/user/delete"
+  Delete: prefix + "/user/delete",
+  UpdateType: prefix + "/user/update_type",
+  UpdatePassword: prefix + "/user/update_password",
+  QueryRoleList: prefix + "/user/role/list",
+  AuthRole: prefix + "/user/role/auth"
 };
 
 // 班级

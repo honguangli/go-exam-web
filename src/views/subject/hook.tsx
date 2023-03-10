@@ -12,7 +12,7 @@ import { UpdateSubject } from "@/api/exam/modules/subject/update";
 import { DeleteSubject } from "@/api/exam/modules/subject/delete";
 import { FormInstance, FormRules } from "element-plus";
 
-export function useQuestion() {
+export function useHook() {
   // 筛选表单
   const searchForm = reactive({
     name: "",

@@ -5,6 +5,7 @@ import { ClassStatus } from "../../models/class";
 
 // 更新班级信息 参数
 export interface UpdateClassParam {
+  id: number; // int
   name: string; // string
   status: ClassStatus; // int
   desc: string; // string

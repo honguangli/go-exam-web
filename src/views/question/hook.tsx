@@ -1,16 +1,23 @@
 import dayjs from "dayjs";
 import { message } from "@/utils/message";
-import { ElMessageBox } from "element-plus";
+import { FormInstance, FormRules } from "element-plus";
 import { type PaginationProps } from "@pureadmin/table";
-import { reactive, ref, computed, onMounted, shallowRef } from "vue";
+import { reactive, ref, computed, onMounted, Ref } from "vue";
 import {
   QueryQuestionList,
   QueryQuestionListResponse
 } from "@/api/exam/modules/question/query_list";
 import { handleResponse } from "@/api/exam/client/client";
-import { delay } from "@pureadmin/utils";
+import {
+  Question,
+  QuestionStatus,
+  QuestionType
+} from "@/api/exam/models/question";
+import { DeleteQuestion } from "@/api/exam/modules/question/delete";
+import { UpdateQuestion } from "@/api/exam/modules/question/update";
+import { CreateQuestion } from "@/api/exam/modules/question/create";
 
-export function useQuestion() {
+export function useHook() {
   // 筛选表单
   const searchForm = reactive({
     name: "",
@@ -106,23 +113,71 @@ export function useQuestion() {
   // 编辑对话框
   const editDialogVisible = ref(false);
   const editDialogTitle = ref("新增试题");
+
   // 编辑表单
+  const editFormRef = ref<FormInstance>();
+  const editFormType: Ref<"create" | "edit"> = ref("create");
   const editForm = reactive({
     id: 0,
-    subject_id: null,
+    subject_id: 0,
     name: "",
-    type: 0,
+    type: QuestionType.ChoiceSingle,
     content: "",
     tips: "",
     analysis: "",
-    difficulty: "",
-    score: 0,
+    difficulty: 0,
+    knowledge_ids: "",
+    score: 1,
+    status: QuestionStatus.Enable,
     memo: ""
   });
-  // 编辑器
-  const editorRef = shallowRef();
-  const toolbarConfig: any = { excludeKeys: "fullScreen" };
-  const editorConfig = { placeholder: "请输入内容..." };
+  const editFormRule = reactive<FormRules>({
+    name: [
+      {
+        required: true,
+        max: 50,
+        message: "请输入角色名称",
+        trigger: "blur"
+      }
+    ],
+    code: [
+      {
+        required: true,
+        max: 50,
+        message: "请输入角色代码",
+        trigger: "blur"
+      }
+    ],
+    status: [
+      {
+        required: true,
+        message: "请选择角色状态",
+        trigger: "blur"
+      }
+    ],
+    seq: [
+      {
+        required: true,
+        message: "请选择角色排序",
+        trigger: "blur"
+      },
+      {
+        type: "integer",
+        min: 1,
+        max: 999999,
+        message: "请输入1~999999之间的正整数",
+        trigger: "blur"
+      }
+    ],
+    memo: [
+      {
+        required: false,
+        max: 255,
+        message: "请输入备注",
+        trigger: "blur"
+      }
+    ]
+  });
 
   const buttonClass = computed(() => {
     return [
@@ -134,73 +189,136 @@ export function useQuestion() {
     ];
   });
 
-  function onChange({ row, index }) {
-    ElMessageBox.confirm(
-      `确认要<strong>${
-        row.status === 0 ? "停用" : "启用"
-      }</strong><strong style='color:var(--el-color-primary)'>${
-        row.name
-      }</strong>角色吗?`,
-      "系统提示",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-        dangerouslyUseHTMLString: true,
-        draggable: true
+  // 弹出编辑对话框
+  function showEditDialog(editType: "create" | "edit", row?: Question) {
+    editFormType.value = editType;
+    if (editFormType.value === "edit") {
+      editDialogTitle.value = "编辑角色";
+      editForm.id = row?.id;
+      editForm.name = row?.name;
+      editForm.type = row?.type;
+      editForm.content = row?.content;
+      editForm.tips = row?.tips;
+      editForm.analysis = row?.analysis;
+      editForm.difficulty = row?.difficulty;
+      editForm.score = row?.score;
+      editForm.memo = row?.memo;
+    } else {
+      editDialogTitle.value = "新增角色";
+      editForm.id = 0;
+      editForm.name = "";
+      editForm.type = QuestionType.ChoiceSingle;
+      editForm.content = "";
+      editForm.tips = "";
+      editForm.analysis = "";
+      editForm.difficulty = 0;
+      editForm.score = 1;
+      editForm.memo = "";
+    }
+    editDialogVisible.value = true;
+  }
+
+  // 创建/更新信息
+  function submitEditForm() {
+    editFormRef.value.validate((valid, fields) => {
+      if (!valid) {
+        console.log("error submit!", fields);
+        return;
       }
-    )
-      .then(() => {
-        switchLoadMap.value[index] = Object.assign(
-          {},
-          switchLoadMap.value[index],
-          {
-            loading: true
-          }
-        );
-        setTimeout(() => {
-          switchLoadMap.value[index] = Object.assign(
-            {},
-            switchLoadMap.value[index],
-            {
-              loading: false
-            }
-          );
-          message("已成功修改角色状态", {
+
+      if (editForm.id === 0) {
+        // 创建
+        CreateQuestion({
+          subject_id: 0,
+          name: editForm.name,
+          type: editForm.type,
+          content: editForm.content,
+          tips: editForm.tips,
+          analysis: editForm.analysis,
+          difficulty: editForm.difficulty,
+          knowledge_ids: "",
+          score: editForm.score,
+          status: 0,
+          memo: editForm.memo
+        })
+          .then(res => {
+            handleResponse(res, () => {
+              message(res.msg, {
+                type: "success"
+              });
+              editDialogVisible.value = false;
+              onSearch();
+            });
+          })
+          .catch(err => {
+            console.log(err);
+            message("操作失败", {
+              type: "error"
+            });
+          });
+        return;
+      }
+
+      // 更新
+      UpdateQuestion({
+        id: editForm.id,
+        name: editForm.name,
+        type: editForm.type,
+        content: editForm.content,
+        tips: editForm.tips,
+        analysis: editForm.analysis,
+        difficulty: editForm.difficulty,
+        score: editForm.score,
+        memo: editForm.memo,
+        subject_id: 0,
+        knowledge_ids: "",
+        status: 0
+      })
+        .then(res => {
+          handleResponse(res, () => {
+            message(res.msg, {
+              type: "success"
+            });
+            editDialogVisible.value = false;
+            onSearch();
+          });
+        })
+        .catch(err => {
+          console.log(err);
+          message("操作失败", {
+            type: "error"
+          });
+        });
+    });
+  }
+
+  function handleDelete(row: Question) {
+    // 删除
+    DeleteQuestion({
+      id: row.id
+    })
+      .then(res => {
+        handleResponse(res, () => {
+          message(res.msg, {
             type: "success"
           });
-        }, 300);
+          onSearch();
+        });
       })
-      .catch(() => {
-        row.status === 0 ? (row.status = 1) : (row.status = 0);
+      .catch(err => {
+        console.log(err);
+        message("操作失败", {
+          type: "error"
+        });
       });
   }
 
-  function handleCreate() {
-    editDialogVisible.value = true;
-    editDialogTitle.value = "新增试题";
-  }
-
-  function handleUpdate(row) {
-    console.log(row);
-    editDialogVisible.value = true;
-    editDialogTitle.value = "编辑试题";
-  }
-
-  function handleDelete(row) {
-    console.log(row);
-  }
-
   function handleSizeChange(val: number) {
-    console.log(`${val} items per page`);
-
     pagination.pageSize = val;
     onSearch();
   }
 
   function handleCurrentChange(val: any) {
-    console.log(`current page: ${val}`);
-
     pagination.currentPage = val;
     onSearch();
   }
@@ -210,7 +328,6 @@ export function useQuestion() {
   }
 
   async function onSearch() {
-    console.log("search", pagination.pageSize, pagination.currentPage);
     loading.value = true;
     const res = await QueryQuestionList({
       name: searchForm.name,
@@ -223,9 +340,7 @@ export function useQuestion() {
       console.log("handle", data);
       dataList.value = data.list;
       pagination.total = data.total;
-      setTimeout(() => {
-        loading.value = false;
-      }, 500);
+      loading.value = false;
     });
   }
 
@@ -247,15 +362,17 @@ export function useQuestion() {
     pagination,
     editDialogVisible,
     editDialogTitle,
+    editFormRef,
     editForm,
-    toolbarConfig,
-    editorRef,
-    editorConfig,
+    editFormRule,
+    // toolbarConfig,
+    // editorRef,
+    // editorConfig,
     buttonClass,
     onSearch,
     resetForm,
-    handleCreate,
-    handleUpdate,
+    showEditDialog,
+    submitEditForm,
     handleDelete,
     handleSizeChange,
     handleCurrentChange,

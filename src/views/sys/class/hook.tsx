@@ -1,22 +1,27 @@
 import { message } from "@/utils/message";
 import { type PaginationProps } from "@pureadmin/table";
-import { reactive, ref, computed, onMounted } from "vue";
+import { reactive, ref, computed, onMounted, Ref } from "vue";
+import { FormInstance, FormRules } from "element-plus";
 import { handleResponse } from "@/api/exam/client/client";
 import {
-  QueryKnowledgeList,
-  QueryKnowledgeListResponse
-} from "@/api/exam/modules/knowledge/query_list";
-import { CreateKnowledge } from "@/api/exam/modules/knowledge/create";
-import { Knowledge } from "@/api/exam/models/knowledge";
-import { UpdateKnowledge } from "@/api/exam/modules/knowledge/update";
-import { DeleteKnowledge } from "@/api/exam/modules/knowledge/delete";
-import { FormInstance, FormRules } from "element-plus";
+  Class,
+  ClassStatus,
+  formatClassStatusText,
+  getClassStatusTagType
+} from "@/api/exam/models/class";
+import {
+  QueryClassList,
+  QueryClassListResponse
+} from "@/api/exam/modules/class/query_list";
+import { CreateClass } from "@/api/exam/modules/class/create";
+import { UpdateClass } from "@/api/exam/modules/class/update";
+import { DeleteClass } from "@/api/exam/modules/class/delete";
 
-export function useHook() {
+export function useQuestion() {
   // 筛选表单
   const searchForm = reactive({
     name: "",
-    type: ""
+    status: ""
   });
   // 表格数据
   const dataList = ref([]);
@@ -49,39 +54,63 @@ export function useHook() {
       minWidth: 100
     },
     {
-      label: "名称",
+      label: "班级名称",
       prop: "name",
-      minWidth: 200
+      minWidth: 150
     },
     {
-      label: "说明",
+      label: "状态",
+      prop: "status",
+      minWidth: 150,
+      cellRenderer: ({ row, props }) => (
+        <el-tag
+          size={props.size}
+          type={getClassStatusTagType(row.status)}
+          effect="plain"
+        >
+          {formatClassStatusText(row.status)}
+        </el-tag>
+      )
+    },
+    {
+      label: "备注",
       prop: "desc",
-      minWidth: 250
+      minWidth: 200
     },
     {
       label: "操作",
       fixed: "right",
-      width: 180,
+      width: 220,
       slot: "operation"
     }
   ];
 
   // 编辑对话框
+  const editDialogTitle = ref("新增班级");
   const editDialogVisible = ref(false);
-  const editDialogTitle = ref("新增知识点");
+
   // 编辑表单
   const editFormRef = ref<FormInstance>();
+  const editFormType: Ref<"create" | "edit"> = ref("create");
   const editForm = reactive({
     id: 0,
     name: "",
+    status: ClassStatus.Enable,
     desc: ""
   });
-  const editRule = reactive<FormRules>({
+  const editFormRule = reactive<FormRules>({
     name: [
       {
         required: true,
         max: 50,
-        message: "请输入不超过50字符的知识点名称",
+        message: "请输入班级名称",
+        trigger: "blur"
+      }
+    ],
+    status: [
+      {
+        required: true,
+        message: "请选择班级状态",
         trigger: "blur"
       }
     ],
@@ -89,7 +118,7 @@ export function useHook() {
       {
         required: false,
         max: 255,
-        message: "请输入知识点说明",
+        message: "请输入备注",
         trigger: "blur"
       }
     ]
@@ -105,19 +134,26 @@ export function useHook() {
     ];
   });
 
-  function showEditDialog(type: "create" | "edit", row?: Knowledge) {
-    if (type === "edit") {
-      editDialogVisible.value = true;
-      editDialogTitle.value = "编辑知识点";
+  // 弹出编辑对话框
+  function showEditDialog(editType: "create" | "edit", row?: Class) {
+    editFormType.value = editType;
+    if (editFormType.value === "edit") {
+      editDialogTitle.value = "编辑班级";
       editForm.id = row?.id;
       editForm.name = row?.name;
+      editForm.status = row?.status;
       editForm.desc = row?.desc;
     } else {
-      editDialogVisible.value = true;
-      editDialogTitle.value = "新增知识点";
+      editDialogTitle.value = "新增班级";
+      editForm.id = 0;
+      editForm.name = "";
+      editForm.status = ClassStatus.Enable;
+      editForm.desc = "";
     }
+    editDialogVisible.value = true;
   }
 
+  // 创建用户/更新用户信息
   function submitEditForm() {
     editFormRef.value.validate((valid, fields) => {
       if (!valid) {
@@ -127,8 +163,9 @@ export function useHook() {
 
       if (editForm.id === 0) {
         // 创建
-        CreateKnowledge({
+        CreateClass({
           name: editForm.name,
+          status: editForm.status,
           desc: editForm.desc
         })
           .then(res => {
@@ -137,9 +174,6 @@ export function useHook() {
                 type: "success"
               });
               editDialogVisible.value = false;
-              editForm.id = 0;
-              editForm.name = "";
-              editForm.desc = "";
               onSearch();
             });
           })
@@ -153,9 +187,10 @@ export function useHook() {
       }
 
       // 更新
-      UpdateKnowledge({
+      UpdateClass({
         id: editForm.id,
         name: editForm.name,
+        status: editForm.status,
         desc: editForm.desc
       })
         .then(res => {
@@ -164,9 +199,6 @@ export function useHook() {
               type: "success"
             });
             editDialogVisible.value = false;
-            editForm.id = 0;
-            editForm.name = "";
-            editForm.desc = "";
             onSearch();
           });
         })
@@ -179,9 +211,9 @@ export function useHook() {
     });
   }
 
-  function handleDelete(row: Knowledge) {
+  function handleDelete(row: Class) {
     // 删除
-    DeleteKnowledge({
+    DeleteClass({
       id: row.id
     })
       .then(res => {
@@ -216,13 +248,14 @@ export function useHook() {
 
   async function onSearch() {
     loading.value = true;
-    const res = await QueryKnowledgeList({
+    const res = await QueryClassList({
       name: searchForm.name,
+      status: searchForm.status === "" ? -1 : parseInt(searchForm.status),
       limit: pagination.pageSize,
       offset: (pagination.currentPage - 1) * pagination.pageSize
     });
 
-    handleResponse(res, (data: QueryKnowledgeListResponse) => {
+    handleResponse(res, (data: QueryClassListResponse) => {
       dataList.value = data.list;
       pagination.total = data.total;
       loading.value = false;
@@ -245,11 +278,12 @@ export function useHook() {
     columns,
     dataList,
     pagination,
-    editDialogVisible,
     editDialogTitle,
+    editDialogVisible,
     editFormRef,
     editForm,
-    editRule,
+    editFormType,
+    editFormRule,
     buttonClass,
     onSearch,
     resetForm,
