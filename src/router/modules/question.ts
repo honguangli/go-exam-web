@@ -4,9 +4,9 @@ export default {
   path: "/data",
   name: "题库管理",
   meta: {
-    icon: "informationLine",
+    icon: "menu",
     title: $t("menus.lghExamDB"),
-    rank: 1
+    rank: 100
   },
   children: [
     {
@@ -14,7 +14,9 @@ export default {
       name: "subject",
       component: () => import("@/views/subject/index.vue"),
       meta: {
-        title: $t("menus.lghSubject")
+        title: $t("menus.lghSubject"),
+        showLink: true,
+        showParent: true
       }
     },
     {
@@ -22,7 +24,9 @@ export default {
       name: "knowledge",
       component: () => import("@/views/knowledge/index.vue"),
       meta: {
-        title: $t("menus.lghKnowledge")
+        title: $t("menus.lghKnowledge"),
+        showLink: true,
+        showParent: true
       }
     },
     {
@@ -30,7 +34,9 @@ export default {
       name: "question",
       component: () => import("@/views/question/index.vue"),
       meta: {
-        title: $t("menus.lghQuestion")
+        title: $t("menus.lghQuestion"),
+        showLink: true,
+        showParent: true
       }
     }
   ]

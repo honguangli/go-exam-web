@@ -109,7 +109,9 @@ menus:
   lghQuestion: Question Manage
   lghExam: Exam Manage
   lghPaper: Paper Manage
+  lghPaperList: Paper List
   lghPlan: Plan Manage
+  lghPlanList: Plan List
   lghUser: User Manage
   lghPermission: Permission Manage
   lghRole: Role Manage

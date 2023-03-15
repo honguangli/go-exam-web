@@ -12,7 +12,7 @@ import AddFill from "@iconify-icons/ri/add-circle-line";
 
 import Editor from "@/components/Editor/index.vue";
 
-import { QuestionType } from "@/api/exam/models/question";
+import { QuestionType, QuestionDifficulty } from "@/api/exam/models/question";
 
 const formRef = ref();
 const {
@@ -33,7 +33,10 @@ const {
   handleDelete,
   handleSizeChange,
   handleCurrentChange,
-  handleSelectionChange
+  handleSelectionChange,
+  transformOptionTag,
+  addOption,
+  deleteOption
 } = useHook();
 </script>
 
@@ -186,33 +189,55 @@ const {
           <el-form-item prop="type" label="题型">
             <el-radio-group v-model.number="editForm.type" size="large">
               <el-space wrap>
-                <el-radio label="单选题" :value="1" border />
-                <el-radio label="多选题" :value="2" border />
-                <el-radio label="判断题" :value="3" border />
-                <el-radio label="填空题" :value="4" border />
-                <el-radio label="多项填空题" :value="5" border />
-                <el-radio label="简答题" :value="6" border />
-                <el-radio label="多项简答题" :value="7" border />
-                <el-radio label="文件题" :value="8" border />
-                <el-radio label="多项文件题" :value="9" border />
+                <el-radio :label="QuestionType.ChoiceSingle" border
+                  >单选题</el-radio
+                >
+                <el-radio :label="QuestionType.ChoiceMulti" border
+                  >多选题</el-radio
+                >
+                <el-radio :label="QuestionType.Judge" border>判断题</el-radio>
+                <el-radio :label="QuestionType.BlankSingle" border
+                  >填空题</el-radio
+                >
+                <el-radio :label="QuestionType.BlankMulti" border
+                  >多项填空题</el-radio
+                >
+                <el-radio :label="QuestionType.AnswerSingle" border
+                  >简答题</el-radio
+                >
+                <el-radio :label="QuestionType.AnswerMulti" border
+                  >多项简答题</el-radio
+                >
+                <!-- <el-radio :label="QuestionType.FileSingle" border>文件题</el-radio>
+                <el-radio :label="QuestionType.FileMulti" border>多项文件题</el-radio> -->
               </el-space>
             </el-radio-group>
           </el-form-item>
           <el-form-item prop="difficulty" label="难度">
             <el-radio-group v-model.number="editForm.difficulty" size="large">
               <el-space wrap>
-                <el-radio label="简单" :value="1" border />
-                <el-radio label="较简单" :value="2" border />
-                <el-radio label="普通" :value="3" border />
-                <el-radio label="较难" :value="4" border />
-                <el-radio label="困难" :value="5" border />
+                <el-radio :label="QuestionDifficulty.Simple" border
+                  >简单</el-radio
+                >
+                <el-radio :label="QuestionDifficulty.MiddleSimple" border
+                  >较简单</el-radio
+                >
+                <el-radio :label="QuestionDifficulty.Normal" border
+                  >普通</el-radio
+                >
+                <el-radio :label="QuestionDifficulty.MiddleHard" border
+                  >较难</el-radio
+                >
+                <el-radio :label="QuestionDifficulty.Hard" border
+                  >困难</el-radio
+                >
               </el-space>
             </el-radio-group>
           </el-form-item>
-          <el-form-item prop="score" label="分数">
+          <el-form-item prop="score" label="分值">
             <el-input-number v-model="editForm.score" :min="1" :max="100" />
           </el-form-item>
-          <el-form-item prop="name" label="题干">
+          <!-- <el-form-item prop="name" label="题干">
             <el-input
               v-model="editForm.name"
               type="textarea"
@@ -223,11 +248,59 @@ const {
               :autosize="{ minRows: 3, maxRows: 6 }"
               style="width: 80%"
             />
-          </el-form-item>
+          </el-form-item> -->
           <el-form-item prop="content" label="题干">
             <Editor v-model="editForm.content" />
           </el-form-item>
-          <template v-if="editForm.type === QuestionType.ChoiceSingle" />
+          <el-divider />
+          <template v-if="editForm.type === QuestionType.ChoiceSingle">
+            <div>选项列表</div>
+            <el-radio-group
+              v-model.number="editForm.difficulty"
+              size="large"
+              style="width: 100%"
+            >
+              <div
+                v-for="(item, index) in editForm.options"
+                :key="index"
+                style="width: 100%"
+              >
+                <el-divider />
+                <el-form-item
+                  prop="name"
+                  :label="transformOptionTag(index + 1)"
+                >
+                  <el-input
+                    v-model="item.content"
+                    type="textarea"
+                    maxlength="1000"
+                    minlength="1"
+                    show-word-limit
+                    placeholder="请输入选项内容"
+                    :autosize="{ minRows: 3, maxRows: 6 }"
+                    style="width: 80%"
+                  />
+                </el-form-item>
+                <el-space wrap>
+                  <el-radio :label="index" border>正确答案</el-radio>
+                  <el-button
+                    type="primary"
+                    :icon="useRenderIcon(AddFill)"
+                    :disabled="editForm.options.length >= 7"
+                    circle
+                    @click="addOption(index)"
+                  />
+                  <el-button
+                    type="danger"
+                    :icon="useRenderIcon(Delete)"
+                    :disabled="editForm.options.length <= 2"
+                    circle
+                    @click="deleteOption(index)"
+                  />
+                </el-space>
+              </div>
+            </el-radio-group>
+          </template>
           <template v-else-if="editForm.type === QuestionType.ChoiceMulti" />
           <template v-else-if="editForm.type === QuestionType.Judge" />
           <template v-else-if="editForm.type === QuestionType.BlankSingle" />
@@ -236,9 +309,9 @@ const {
           <template v-else-if="editForm.type === QuestionType.AnswerMulti" />
           <template v-else-if="editForm.type === QuestionType.FileSingle" />
           <template v-else-if="editForm.type === QuestionType.FileMulti" />
-          <el-form-item prop="analysis" label="解析">
+          <!-- <el-form-item prop="analysis" label="解析">
             <Editor v-model="editForm.analysis" />
-          </el-form-item>
+          </el-form-item> -->
         </el-form>
       </el-scrollbar>
       <template #footer>

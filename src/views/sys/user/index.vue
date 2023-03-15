@@ -259,15 +259,6 @@ const {
               />
             </el-form-item>
           </template>
-          <el-form-item prop="type" label="账号类型">
-            <el-radio-group v-model.number="editForm.type">
-              <el-space wrap>
-                <el-radio :label="1" border>管理员</el-radio>
-                <el-radio :label="2" border>教师</el-radio>
-                <el-radio :label="3" border>学生</el-radio>
-              </el-space>
-            </el-radio-group>
-          </el-form-item>
           <el-form-item prop="status" label="状态">
             <el-radio-group v-model.number="editForm.status">
               <el-space wrap>

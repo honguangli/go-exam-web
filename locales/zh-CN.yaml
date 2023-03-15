@@ -109,7 +109,9 @@ menus:
   lghQuestion: 试题管理
   lghExam: 考试管理
   lghPaper: 试卷管理
+  lghPaperList: 试卷列表
   lghPlan: 考试管理
+  lghPlanList: 考试计划
   lghUser: 用户管理
   lghPermission: 权限管理
   lghRole: 角色管理

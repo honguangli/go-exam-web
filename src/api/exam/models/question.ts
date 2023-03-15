@@ -29,6 +29,15 @@ export enum QuestionType {
   FileMulti = 9 // 多项文件题
 }
 
+// 难度
+export enum QuestionDifficulty {
+  Simple = 20, // 简单
+  MiddleSimple = 40, // 较简单
+  Normal = 60, // 普通
+  MiddleHard = 80, // 较困难
+  Hard = 100 // 困难
+}
+
 // 状态
 export enum QuestionStatus {
   Disable,

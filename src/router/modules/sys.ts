@@ -4,9 +4,9 @@ export default {
   path: "/sys",
   name: "sys",
   meta: {
-    icon: "informationLine",
+    icon: "menu",
     title: $t("menus.lghUser"),
-    rank: 6
+    rank: 400
   },
   children: [
     {
@@ -37,15 +37,15 @@ export default {
         showLink: true
       }
     },
-    {
-      path: "/sys/teacher",
-      name: "sysTeacher",
-      component: () => import("@/views/sys/teacher/index.vue"),
-      meta: {
-        title: $t("menus.lghTeacher"),
-        showLink: true
-      }
-    },
+    // {
+    //   path: "/sys/teacher",
+    //   name: "sysTeacher",
+    //   component: () => import("@/views/sys/teacher/index.vue"),
+    //   meta: {
+    //     title: $t("menus.lghTeacher"),
+    //     showLink: true
+    //   }
+    // },
     {
       path: "/sys/student",
       name: "sysStudent",

@@ -4,25 +4,19 @@ export default {
   path: "/exam",
   name: "考试管理",
   meta: {
-    icon: "informationLine",
+    icon: "menu",
     title: $t("menus.lghExam"),
-    rank: 3
+    rank: 300
   },
   children: [
     {
-      path: "/paper",
-      name: "paper",
-      component: () => import("@/views/subject/index.vue"),
-      meta: {
-        title: $t("menus.lghPaper")
-      }
-    },
-    {
-      path: "/plan",
+      path: "/exam/plan",
       name: "plan",
-      component: () => import("@/views/knowledge/index.vue"),
+      component: () => import("@/views/plan/index.vue"),
       meta: {
-        title: $t("menus.lghPlan")
+        title: $t("menus.lghPlanList"),
+        showLink: true,
+        showParent: true
       }
     }
   ]

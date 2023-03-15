@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import { message } from "@/utils/message";
 import { FormInstance, FormRules } from "element-plus";
 import { type PaginationProps } from "@pureadmin/table";
-import { reactive, ref, computed, onMounted, Ref } from "vue";
+import { reactive, ref, computed, onMounted, Ref, watch } from "vue";
 import {
   QueryQuestionList,
   QueryQuestionListResponse
@@ -10,12 +10,18 @@ import {
 import { handleResponse } from "@/api/exam/client/client";
 import {
   Question,
+  QuestionDifficulty,
   QuestionStatus,
   QuestionType
 } from "@/api/exam/models/question";
 import { DeleteQuestion } from "@/api/exam/modules/question/delete";
 import { UpdateQuestion } from "@/api/exam/modules/question/update";
 import { CreateQuestion } from "@/api/exam/modules/question/create";
+import { QuestionOption } from "@/api/exam/models/question_option";
+import {
+  QueryQuestionDetail,
+  QueryQuestionDetailResponse
+} from "@/api/exam/modules/question/query_detail";
 
 export function useHook() {
   // 筛选表单
@@ -24,7 +30,7 @@ export function useHook() {
     type: ""
   });
   // 表格数据
-  const dataList = ref([]);
+  const dataList: Ref<Array<Question>> = ref([]);
   // 表格加载状态
   const loading = ref(true);
   // 表格分页
@@ -125,11 +131,12 @@ export function useHook() {
     content: "",
     tips: "",
     analysis: "",
-    difficulty: 0,
+    difficulty: QuestionDifficulty.Normal,
     knowledge_ids: "",
     score: 1,
     status: QuestionStatus.Enable,
-    memo: ""
+    memo: "",
+    options: new Array<QuestionOption>()
   });
   const editFormRule = reactive<FormRules>({
     name: [
@@ -192,28 +199,77 @@ export function useHook() {
   // 弹出编辑对话框
   function showEditDialog(editType: "create" | "edit", row?: Question) {
     editFormType.value = editType;
-    if (editFormType.value === "edit") {
-      editDialogTitle.value = "编辑角色";
-      editForm.id = row?.id;
-      editForm.name = row?.name;
-      editForm.type = row?.type;
-      editForm.content = row?.content;
-      editForm.tips = row?.tips;
-      editForm.analysis = row?.analysis;
-      editForm.difficulty = row?.difficulty;
-      editForm.score = row?.score;
-      editForm.memo = row?.memo;
+    if (editFormType.value === "edit" && row) {
+      editDialogTitle.value = "编辑试题";
+      // 查询
+      QueryQuestionDetail({
+        id: row.id
+      })
+        .then(res => {
+          handleResponse(res, (data: QueryQuestionDetailResponse) => {
+            editForm.id = data.detail.id;
+            editForm.name = data.detail.name;
+            editForm.type = data.detail.type;
+            editForm.content = data.detail.content;
+            editForm.tips = data.detail.tips;
+            editForm.analysis = data.detail.analysis;
+            editForm.difficulty = data.detail.difficulty;
+            editForm.score = data.detail.score;
+            editForm.memo = data.detail.memo;
+            editForm.options = data.options;
+          });
+        })
+        .catch(err => {
+          console.log(err);
+          message("获取数据失败", {
+            type: "error"
+          });
+        });
     } else {
-      editDialogTitle.value = "新增角色";
+      editDialogTitle.value = "新增试题";
       editForm.id = 0;
       editForm.name = "";
       editForm.type = QuestionType.ChoiceSingle;
       editForm.content = "";
       editForm.tips = "";
       editForm.analysis = "";
-      editForm.difficulty = 0;
+      editForm.difficulty = QuestionDifficulty.Normal;
       editForm.score = 1;
       editForm.memo = "";
+      editForm.options = [
+        {
+          id: 0,
+          question_id: 0,
+          tag: "",
+          content: "",
+          is_right: 0,
+          memo: ""
+        },
+        {
+          id: 0,
+          question_id: 0,
+          tag: "",
+          content: "",
+          is_right: 0,
+          memo: ""
+        },
+        {
+          id: 0,
+          question_id: 0,
+          tag: "",
+          content: "",
+          is_right: 0,
+          memo: ""
+        },
+        {
+          id: 0,
+          question_id: 0,
+          tag: "",
+          content: "",
+          is_right: 0,
+          memo: ""
+        }
+      ];
     }
     editDialogVisible.value = true;
   }
@@ -327,6 +383,40 @@ export function useHook() {
     console.log("handleSelectionChange", val);
   }
 
+  function transformOptionTag(index: number) {
+    const ans = [];
+    while (index > 0) {
+      const a0 = ((index - 1) % 26) + 1;
+      ans.push(String.fromCharCode(a0 - 1 + "A".charCodeAt(0)));
+      index = Math.floor((index - a0) / 26);
+    }
+    ans.reverse();
+    return ans.join("");
+  }
+
+  // 添加选项
+  function addOption(index: number) {
+    if (editForm.options.length >= 7) {
+      return;
+    }
+    editForm.options.splice(index + 1, 0, {
+      id: 0,
+      question_id: 0,
+      tag: "",
+      content: "",
+      is_right: 0,
+      memo: ""
+    });
+  }
+
+  // 删除选项
+  function deleteOption(index: number) {
+    if (editForm.options.length <= 2) {
+      return;
+    }
+    editForm.options.splice(index, 1);
+  }
+
   async function onSearch() {
     loading.value = true;
     const res = await QueryQuestionList({
@@ -354,6 +444,13 @@ export function useHook() {
     onSearch();
   });
 
+  watch(
+    () => editForm.type,
+    type => {
+      console.log(`type is: ${type}`);
+    }
+  );
+
   return {
     searchForm,
     loading,
@@ -365,9 +462,6 @@ export function useHook() {
     editFormRef,
     editForm,
     editFormRule,
-    // toolbarConfig,
-    // editorRef,
-    // editorConfig,
     buttonClass,
     onSearch,
     resetForm,
@@ -376,6 +470,9 @@ export function useHook() {
     handleDelete,
     handleSizeChange,
     handleCurrentChange,
-    handleSelectionChange
+    handleSelectionChange,
+    transformOptionTag,
+    addOption,
+    deleteOption
   };
 }

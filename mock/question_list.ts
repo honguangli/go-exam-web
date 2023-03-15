@@ -25,7 +25,7 @@ list.push({
 
 export default [
   {
-    url: "/exam/api/question/list",
+    url: "/test/exam/api/question/list",
     method: "post",
     response: () => {
       return {

@@ -28,6 +28,24 @@ const Question = {
   Delete: prefix + "/question/delete"
 };
 
+// 试卷
+const Paper = {
+  QueryList: prefix + "/paper/list",
+  QueryDetail: prefix + "/paper/detail",
+  Create: prefix + "/paper/create",
+  Update: prefix + "/paper/update",
+  Delete: prefix + "/paper/delete"
+};
+
+// 考试计划
+const Plan = {
+  QueryList: prefix + "/plan/list",
+  QueryDetail: prefix + "/plan/detail",
+  Create: prefix + "/plan/create",
+  Update: prefix + "/plan/update",
+  Delete: prefix + "/plan/delete"
+};
+
 // 权限
 const Permission = {
   QueryList: prefix + "/permission/list",
@@ -77,6 +95,8 @@ export default {
   Subject,
   Knowledge,
   Question,
+  Paper,
+  Plan,
   Permission,
   Role,
   User,
