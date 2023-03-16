@@ -7,7 +7,7 @@
       mode="default"
     />
     <Editor
-      style="height: 500px; overflow-y: hidden"
+      style="height: 300px; overflow-y: hidden"
       v-model="value"
       :defaultConfig="editorConfig"
       mode="default"

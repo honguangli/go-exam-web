@@ -26,7 +26,7 @@ export enum UserStatus {
   Enable
 }
 
-// 格式化状态文本
+// 格式化类型文本
 export const formatUserTypeText = (v: UserType) => {
   switch (v) {
     case UserType.Admin:
@@ -40,7 +40,7 @@ export const formatUserTypeText = (v: UserType) => {
   }
 };
 
-// 获取状态标签
+// 获取类型标签
 export const getUserTypeTagType = (v: UserType) => {
   switch (v) {
     case UserType.Admin:

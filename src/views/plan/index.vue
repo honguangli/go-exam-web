@@ -6,6 +6,7 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 
 import Delete from "@iconify-icons/ep/delete";
 import EditPen from "@iconify-icons/ep/edit-pen";
+import Role from "@iconify-icons/ri/admin-line";
 import Search from "@iconify-icons/ep/search";
 import Refresh from "@iconify-icons/ep/refresh";
 import AddFill from "@iconify-icons/ri/add-circle-line";
@@ -17,19 +18,43 @@ const {
   columns,
   dataList,
   pagination,
+  classListTableRef,
+  classListDataList,
+  classListLoading,
+  classListPagination,
+  classListColumns,
+  pushClassTableRef,
+  pushClassDataList,
+  pushClassLoading,
+  pushClassPagination,
+  pushClassColumns,
   editDialogVisible,
   editDialogTitle,
+  classListDialogTitle,
+  classListDialogVisible,
+  pushClassDialogTitle,
+  pushClassDialogVisible,
   editFormRef,
   editForm,
   editRule,
   onSearch,
+  onSearchPlanClassList,
+  onSearchClassList,
   resetForm,
   showEditDialog,
+  showPlanClassListDialog,
+  showPushClassDialog,
   submitEditForm,
+  submitDeleteClass,
+  submitPushClass,
   handleDelete,
   handleSizeChange,
   handleCurrentChange,
-  handleSelectionChange
+  handleSelectionChange,
+  handleClassListSizeChange,
+  handleClassListCurrentChange,
+  handlePushClassSizeChange,
+  handlePushClassCurrentChange
 } = useHook();
 </script>
 
@@ -119,6 +144,16 @@ const {
                 </el-button>
               </template>
             </el-popconfirm>
+            <el-button
+              class="reset-margin"
+              link
+              type="primary"
+              :size="size"
+              :icon="useRenderIcon(Role)"
+              @click="showPlanClassListDialog(row)"
+            >
+              班级管理
+            </el-button>
           </template>
         </pure-table>
       </template>
@@ -144,18 +179,49 @@ const {
             v-model="editForm.name"
             maxlength="50"
             show-word-limit
-            placeholder="请输入知识点名称"
+            placeholder="请输入考试计划名称"
             style="width: 80%"
           />
         </el-form-item>
-        <el-form-item prop="desc" label="说明">
+        <el-form-item prop="paper_id" label="试卷">
+          <el-select
+            v-model.number="editForm.paper_id"
+            placeholder="请选择试卷"
+            style="width: 50%"
+          >
+            <el-option label="C语言程序设计" :value="0" />
+            <el-option label="Zone two" :value="2" />
+          </el-select>
+        </el-form-item>
+        <el-form-item prop="start_time" label="开始时间">
+          <el-date-picker
+            v-model="editForm.start_time"
+            type="datetime"
+            value-format="timestamp"
+            placeholder="请选择开始考试时间"
+            style="width: 50%"
+          />
+        </el-form-item>
+        <el-form-item prop="end_time" label="结束时间">
+          <el-date-picker
+            v-model="editForm.end_time"
+            type="datetime"
+            value-format="timestamp"
+            placeholder="请选择结束考试时间"
+            style="width: 50%"
+          />
+        </el-form-item>
+        <el-form-item prop="duration" label="考试时长（分钟）">
+          <el-input-number v-model="editForm.duration" :min="1" :max="1000" />
+        </el-form-item>
+        <el-form-item prop="memo" label="备注说明">
           <el-input
-            v-model="editForm.desc"
+            v-model="editForm.memo"
             type="textarea"
             minlength="1"
             maxlength="255"
             show-word-limit
-            placeholder="请输入知识点说明"
+            placeholder="请输入考试计划备注说明"
             :autosize="{ minRows: 3, maxRows: 6 }"
             style="width: 80%"
           />
@@ -167,6 +233,117 @@ const {
           <el-button type="primary" @click="submitEditForm">提交</el-button>
         </span>
       </template>
+    </el-dialog>
+
+    <el-dialog
+      v-model="classListDialogVisible"
+      :title="classListDialogTitle"
+      width="80vw"
+      draggable
+      center
+      align-center
+      destroy-on-close
+    >
+      <el-scrollbar max-height="80vh">
+        <PureTableBar
+          title="班级列表"
+          @refresh="onSearchPlanClassList"
+          :tableRef="classListTableRef?.getTableRef()"
+          :check-list="['勾选列']"
+        >
+          <template #buttons>
+            <el-button
+              type="primary"
+              :icon="useRenderIcon(AddFill)"
+              @click="showPushClassDialog"
+            >
+              添加班级
+            </el-button>
+            <el-button
+              type="danger"
+              :icon="useRenderIcon(AddFill)"
+              @click="submitDeleteClass"
+            >
+              删除班级
+            </el-button>
+          </template>
+          <template v-slot="{ size, checkList }">
+            <pure-table
+              border
+              ref="classListTableRef"
+              align-whole="center"
+              showOverflowTooltip
+              table-layout="auto"
+              :loading="classListLoading"
+              :size="size"
+              :data="classListDataList"
+              :columns="classListColumns"
+              :checkList="checkList"
+              row-key="id"
+              :pagination="classListPagination"
+              :paginationSmall="size === 'small' ? true : false"
+              :header-cell-style="{
+                background: 'var(--el-table-row-hover-bg-color)',
+                color: 'var(--el-text-color-primary)'
+              }"
+              @page-size-change="handleClassListSizeChange"
+              @page-current-change="handleClassListCurrentChange"
+            />
+          </template>
+        </PureTableBar>
+      </el-scrollbar>
+    </el-dialog>
+
+    <el-dialog
+      v-model="pushClassDialogVisible"
+      :title="pushClassDialogTitle"
+      width="80vw"
+      draggable
+      center
+      align-center
+      destroy-on-close
+    >
+      <el-scrollbar max-height="80vh">
+        <PureTableBar
+          title="班级列表"
+          @refresh="onSearchClassList"
+          :tableRef="pushClassTableRef?.getTableRef()"
+          :check-list="['勾选列']"
+        >
+          <template #buttons>
+            <el-button
+              type="primary"
+              :icon="useRenderIcon(AddFill)"
+              @click="submitPushClass"
+            >
+              添加班级
+            </el-button>
+          </template>
+          <template v-slot="{ size, checkList }">
+            <pure-table
+              border
+              ref="pushClassTableRef"
+              align-whole="center"
+              showOverflowTooltip
+              table-layout="auto"
+              :loading="pushClassLoading"
+              :size="size"
+              :data="pushClassDataList"
+              :columns="pushClassColumns"
+              :checkList="checkList"
+              row-key="id"
+              :pagination="pushClassPagination"
+              :paginationSmall="size === 'small' ? true : false"
+              :header-cell-style="{
+                background: 'var(--el-table-row-hover-bg-color)',
+                color: 'var(--el-text-color-primary)'
+              }"
+              @page-size-change="handlePushClassSizeChange"
+              @page-current-change="handlePushClassCurrentChange"
+            />
+          </template>
+        </PureTableBar>
+      </el-scrollbar>
     </el-dialog>
   </div>
 </template>

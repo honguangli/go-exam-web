@@ -5,7 +5,6 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 
 import Delete from "@iconify-icons/ep/delete";
-import More from "@iconify-icons/ep/more-filled";
 import EditPen from "@iconify-icons/ep/edit-pen";
 import Role from "@iconify-icons/ri/admin-line";
 import Search from "@iconify-icons/ep/search";
@@ -23,19 +22,43 @@ const {
   columns,
   dataList,
   pagination,
+  userListTableRef,
+  userListDataList,
+  userListLoading,
+  userListPagination,
+  userListColumns,
+  pushUserTableRef,
+  pushUserDataList,
+  pushUserLoading,
+  pushUserPagination,
+  pushUserColumns,
   editDialogTitle,
   editDialogVisible,
+  userListDialogTitle,
+  userListDialogVisible,
+  pushUserDialogTitle,
+  pushUserDialogVisible,
   editFormRef,
   editForm,
   editFormRule,
   onSearch,
+  onSearchClassUser,
+  onSearchStudentList,
   resetForm,
   showEditDialog,
+  showUserListDialog,
+  showPushUserDialog,
   submitEditForm,
+  submitDeleteUser,
+  submitPushUser,
   handleDelete,
   handleSizeChange,
   handleCurrentChange,
-  handleSelectionChange
+  handleSelectionChange,
+  handleUserListSizeChange,
+  handleUserListCurrentChange,
+  handlePushUserSizeChange,
+  handlePushUserCurrentChange
 } = useQuestion();
 </script>
 
@@ -136,30 +159,16 @@ const {
                 </el-button>
               </template>
             </el-popconfirm>
-            <el-dropdown>
-              <el-button
-                class="ml-3 mt-[2px]"
-                link
-                type="primary"
-                :size="size"
-                :icon="useRenderIcon(More)"
-              />
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item>
-                    <el-button
-                      class="reset-margin"
-                      link
-                      type="primary"
-                      :size="size"
-                      :icon="useRenderIcon(Role)"
-                    >
-                      用户管理
-                    </el-button>
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
+            <el-button
+              class="reset-margin"
+              link
+              type="primary"
+              :size="size"
+              :icon="useRenderIcon(Role)"
+              @click="showUserListDialog(row)"
+            >
+              用户管理
+            </el-button>
           </template>
         </pure-table>
       </template>
@@ -218,6 +227,117 @@ const {
           <el-button type="primary" @click="submitEditForm">提交</el-button>
         </span>
       </template>
+    </el-dialog>
+
+    <el-dialog
+      v-model="userListDialogVisible"
+      :title="userListDialogTitle"
+      width="80vw"
+      draggable
+      center
+      align-center
+      destroy-on-close
+    >
+      <el-scrollbar max-height="80vh">
+        <PureTableBar
+          title="考生列表"
+          @refresh="onSearchClassUser"
+          :tableRef="userListTableRef?.getTableRef()"
+          :check-list="['勾选列']"
+        >
+          <template #buttons>
+            <el-button
+              type="primary"
+              :icon="useRenderIcon(AddFill)"
+              @click="showPushUserDialog"
+            >
+              添加考生
+            </el-button>
+            <el-button
+              type="danger"
+              :icon="useRenderIcon(AddFill)"
+              @click="submitDeleteUser"
+            >
+              删除考生
+            </el-button>
+          </template>
+          <template v-slot="{ size, checkList }">
+            <pure-table
+              border
+              ref="userListTableRef"
+              align-whole="center"
+              showOverflowTooltip
+              table-layout="auto"
+              :loading="userListLoading"
+              :size="size"
+              :data="userListDataList"
+              :columns="userListColumns"
+              :checkList="checkList"
+              row-key="id"
+              :pagination="userListPagination"
+              :paginationSmall="size === 'small' ? true : false"
+              :header-cell-style="{
+                background: 'var(--el-table-row-hover-bg-color)',
+                color: 'var(--el-text-color-primary)'
+              }"
+              @page-size-change="handleUserListSizeChange"
+              @page-current-change="handleUserListCurrentChange"
+            />
+          </template>
+        </PureTableBar>
+      </el-scrollbar>
+    </el-dialog>
+
+    <el-dialog
+      v-model="pushUserDialogVisible"
+      :title="pushUserDialogTitle"
+      width="80vw"
+      draggable
+      center
+      align-center
+      destroy-on-close
+    >
+      <el-scrollbar max-height="80vh">
+        <PureTableBar
+          title="考生列表"
+          @refresh="onSearchStudentList"
+          :tableRef="pushUserTableRef?.getTableRef()"
+          :check-list="['勾选列']"
+        >
+          <template #buttons>
+            <el-button
+              type="primary"
+              :icon="useRenderIcon(AddFill)"
+              @click="submitPushUser"
+            >
+              添加考生
+            </el-button>
+          </template>
+          <template v-slot="{ size, checkList }">
+            <pure-table
+              border
+              ref="pushUserTableRef"
+              align-whole="center"
+              showOverflowTooltip
+              table-layout="auto"
+              :loading="pushUserLoading"
+              :size="size"
+              :data="pushUserDataList"
+              :columns="pushUserColumns"
+              :checkList="checkList"
+              row-key="id"
+              :pagination="pushUserPagination"
+              :paginationSmall="size === 'small' ? true : false"
+              :header-cell-style="{
+                background: 'var(--el-table-row-hover-bg-color)',
+                color: 'var(--el-text-color-primary)'
+              }"
+              @page-size-change="handlePushUserSizeChange"
+              @page-current-change="handlePushUserCurrentChange"
+            />
+          </template>
+        </PureTableBar>
+      </el-scrollbar>
     </el-dialog>
   </div>
 </template>

@@ -109,6 +109,11 @@ export function useQuestion() {
       )
     },
     {
+      label: "姓名",
+      prop: "true_name",
+      minWidth: 150
+    },
+    {
       label: "手机号",
       prop: "mobile",
       minWidth: 150
@@ -380,7 +385,7 @@ export function useQuestion() {
   // 弹出编辑对话框
   function showEditDialog(editType: "create" | "edit", row?: User) {
     editFormType.value = editType;
-    if (editFormType.value === "edit") {
+    if (editFormType.value === "edit" && row) {
       editDialogTitle.value = "编辑用户";
       editForm.id = row?.id;
       editForm.name = row?.name;
@@ -427,7 +432,6 @@ export function useQuestion() {
 
   // 弹出授权对话框
   function showAuthDialog(row: Role) {
-    console.log("showAuthDialog", row);
     onSearchRole();
     authUserID.value = row.id;
     authDialogVisible.value = true;

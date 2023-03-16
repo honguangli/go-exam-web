@@ -21,3 +21,35 @@ export enum PlanStatus {
   Cancel,
   End
 }
+
+// 格式化状态文本
+export const formatPlanStatusText = (v: PlanStatus) => {
+  switch (v) {
+    case PlanStatus.Draft:
+      return "未发布";
+    case PlanStatus.Running:
+      return "已发布";
+    case PlanStatus.Cancel:
+      return "已取消";
+    case PlanStatus.End:
+      return "已结束";
+    default:
+      return "异常";
+  }
+};
+
+// 获取状态标签
+export const getPlanStatusTagType = (v: PlanStatus) => {
+  switch (v) {
+    case PlanStatus.Draft:
+      return "";
+    case PlanStatus.Running:
+      return "primary";
+    case PlanStatus.Cancel:
+      return "info";
+    case PlanStatus.End:
+      return "success";
+    default:
+      return "warning";
+  }
+};

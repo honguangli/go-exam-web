@@ -43,7 +43,10 @@ const Plan = {
   QueryDetail: prefix + "/plan/detail",
   Create: prefix + "/plan/create",
   Update: prefix + "/plan/update",
-  Delete: prefix + "/plan/delete"
+  Delete: prefix + "/plan/delete",
+  QueryClassList: prefix + "/plan/class/list",
+  PushClass: prefix + "/plan/class/push",
+  DeleteClass: prefix + "/plan/class/delete"
 };
 
 // 权限
@@ -87,8 +90,10 @@ const Class = {
   QueryDetail: prefix + "/class/detail",
   Create: prefix + "/class/create",
   Update: prefix + "/class/update",
-  UpdateUser: prefix + "/class/user",
-  Delete: prefix + "/class/delete"
+  Delete: prefix + "/class/delete",
+  QueryUserList: prefix + "/class/user/list",
+  PushUser: prefix + "/class/user/push",
+  DeleteUser: prefix + "/class/user/delete"
 };
 
 export default {

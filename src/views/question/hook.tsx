@@ -9,8 +9,9 @@ import {
 } from "@/api/exam/modules/question/query_list";
 import { handleResponse } from "@/api/exam/client/client";
 import {
+  formatQuestionTypeText,
+  getQuestionTypeTagType,
   Question,
-  QuestionDifficulty,
   QuestionStatus,
   QuestionType
 } from "@/api/exam/models/question";
@@ -40,7 +41,6 @@ export function useHook() {
     currentPage: 1,
     background: true
   });
-  const switchLoadMap = ref({});
   // 表格列
   const columns: TableColumnList = [
     {
@@ -66,40 +66,23 @@ export function useHook() {
       minWidth: 200
     },
     {
-      label: "类型",
+      label: "题型",
       prop: "type",
       minWidth: 150,
       cellRenderer: ({ row, props }) => (
         <el-tag
           size={props.size}
-          type={row.type === 1 ? "danger" : ""}
+          type={getQuestionTypeTagType(row.status)}
           effect="plain"
         >
-          {row.type === 1 ? "内置" : "自定义"}
+          {formatQuestionTypeText(row.status)}
         </el-tag>
       )
     },
     {
-      label: "显示顺序",
-      prop: "sort",
+      label: "难度系数",
+      prop: "difficulty",
       minWidth: 100
-    },
-    {
-      label: "状态",
-      minWidth: 130,
-      cellRenderer: scope => (
-        <el-switch
-          size={scope.props.size === "small" ? "small" : "default"}
-          loading={switchLoadMap.value[scope.index]?.loading}
-          v-model={scope.row.status}
-          active-value={1}
-          inactive-value={0}
-          active-text="已开启"
-          inactive-text="已关闭"
-          inline-prompt
-          //onChange={() => onChange(scope as any)}
-        />
-      )
     },
     {
       label: "创建时间",
@@ -131,7 +114,7 @@ export function useHook() {
     content: "",
     tips: "",
     analysis: "",
-    difficulty: QuestionDifficulty.Normal,
+    difficulty: 50,
     knowledge_ids: "",
     score: 1,
     status: QuestionStatus.Enable,
@@ -233,7 +216,7 @@ export function useHook() {
       editForm.content = "";
       editForm.tips = "";
       editForm.analysis = "";
-      editForm.difficulty = QuestionDifficulty.Normal;
+      editForm.difficulty = 50;
       editForm.score = 1;
       editForm.memo = "";
       editForm.options = [
@@ -422,6 +405,7 @@ export function useHook() {
     const res = await QueryQuestionList({
       name: searchForm.name,
       type: parseInt(searchForm.type) || 0,
+      status: -1,
       limit: pagination.pageSize,
       offset: (pagination.currentPage - 1) * pagination.pageSize
     });

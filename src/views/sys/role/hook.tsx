@@ -272,7 +272,7 @@ export function useQuestion() {
   // 弹出编辑对话框
   function showEditDialog(editType: "create" | "edit", row?: Role) {
     editFormType.value = editType;
-    if (editFormType.value === "edit") {
+    if (editFormType.value === "edit" && row) {
       editDialogTitle.value = "编辑角色";
       editForm.id = row?.id;
       editForm.name = row?.name;

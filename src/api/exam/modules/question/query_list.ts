@@ -7,6 +7,7 @@ import { Question } from "../../models/question";
 export interface QueryQuestionListParam {
   name?: string;
   type?: number;
+  status: number;
   limit: number;
   offset: number;
 }

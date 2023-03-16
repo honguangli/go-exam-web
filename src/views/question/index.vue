@@ -12,7 +12,7 @@ import AddFill from "@iconify-icons/ri/add-circle-line";
 
 import Editor from "@/components/Editor/index.vue";
 
-import { QuestionType, QuestionDifficulty } from "@/api/exam/models/question";
+import { QuestionType } from "@/api/exam/models/question";
 
 const formRef = ref();
 const {
@@ -131,7 +131,7 @@ const {
             >
               编辑
             </el-button>
-            <el-popconfirm title="是否确认删除?">
+            <el-popconfirm title="是否确认删除?" @confirm="handleDelete(row)">
               <template #reference>
                 <el-button
                   class="reset-margin"
@@ -139,7 +139,6 @@ const {
                   type="primary"
                   :size="size"
                   :icon="useRenderIcon(Delete)"
-                  @click="handleDelete(row)"
                 >
                   删除
                 </el-button>
@@ -172,18 +171,19 @@ const {
               placeholder="请选择科目"
               style="width: 50%"
             >
-              <el-option label="Zone one" :value="1" />
+              <el-option label="C语言程序设计" :value="0" />
               <el-option label="Zone two" :value="2" />
             </el-select>
           </el-form-item>
           <el-form-item prop="knowledge_ids" label="知识点">
             <el-select
               v-model="editForm.knowledge_ids"
+              multiple
               placeholder="请选择知识点"
               style="width: 50%"
             >
-              <el-option label="Zone one" :value="1" />
-              <el-option label="Zone two" :value="2" />
+              <el-option label="网络协议与标准" :value="0" />
+              <el-option label="TCP/IP" :value="2" />
             </el-select>
           </el-form-item>
           <el-form-item prop="type" label="题型">
@@ -213,8 +213,11 @@ const {
               </el-space>
             </el-radio-group>
           </el-form-item>
-          <el-form-item prop="difficulty" label="难度">
-            <el-radio-group v-model.number="editForm.difficulty" size="large">
+          <el-form-item
+            prop="difficulty"
+            label="难度系数（1~100，数值越大难度越大）"
+          >
+            <!-- <el-radio-group v-model.number="editForm.difficulty" size="large">
               <el-space wrap>
                 <el-radio :label="QuestionDifficulty.Simple" border
                   >简单</el-radio
@@ -232,11 +235,18 @@ const {
                   >困难</el-radio
                 >
               </el-space>
-            </el-radio-group>
+            </el-radio-group> -->
+
+            <el-input-number
+              v-model="editForm.difficulty"
+              :step="5"
+              :min="1"
+              :max="100"
+            />
           </el-form-item>
-          <el-form-item prop="score" label="分值">
+          <!-- <el-form-item prop="score" label="分值">
             <el-input-number v-model="editForm.score" :min="1" :max="100" />
-          </el-form-item>
+          </el-form-item> -->
           <!-- <el-form-item prop="name" label="题干">
             <el-input
               v-model="editForm.name"
@@ -254,7 +264,7 @@ const {
           </el-form-item>
           <el-divider />
           <template v-if="editForm.type === QuestionType.ChoiceSingle">
-            <div>选项列表</div>
+            <div><el-tag>选项列表</el-tag></div>
             <el-radio-group
               v-model.number="editForm.difficulty"
               size="large"
