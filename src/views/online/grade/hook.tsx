@@ -239,17 +239,17 @@ export function useHook() {
     dataList.value = [
       {
         name: "2023上半年C语言程序设计",
-        score: 0,
-        start_time: 0,
+        score: 98,
+        start_time: 1678948823,
         end_time: 0,
-        status: 0
+        status: 1
       },
       {
         name: "2023上半年高等数学（二）",
         score: 98,
         start_time: 1678948823,
         end_time: 0,
-        status: 1
+        status: 0
       }
     ];
     pagination.total = dataList.value.length;

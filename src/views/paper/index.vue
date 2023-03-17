@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { h, ref } from "vue";
 import { useHook } from "./hook";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import { ElDivider } from "element-plus";
 
 import Delete from "@iconify-icons/ep/delete";
 import EditPen from "@iconify-icons/ep/edit-pen";
+import ArrowUp from "@iconify-icons/ep/arrow-up";
+import ArrowDown from "@iconify-icons/ep/arrow-down";
 import Search from "@iconify-icons/ep/search";
 import Refresh from "@iconify-icons/ep/refresh";
 import AddFill from "@iconify-icons/ri/add-circle-line";
@@ -22,14 +25,22 @@ const {
   editFormRef,
   editForm,
   editRule,
+  aiDialogVisible,
+  aiDialogTitle,
+  aiFormRef,
+  aiForm,
+  aiRule,
   onSearch,
   resetForm,
   showEditDialog,
+  showAiEditDialog,
   submitEditForm,
+  submitAiEditForm,
   handleDelete,
   handleSizeChange,
   handleCurrentChange,
-  handleSelectionChange
+  handleSelectionChange,
+  questionBlock
 } = useHook();
 </script>
 
@@ -76,7 +87,7 @@ const {
         <el-button
           type="primary"
           :icon="useRenderIcon(AddFill)"
-          @click="showEditDialog('create')"
+          @click="showAiEditDialog"
         >
           智能组卷
         </el-button>
@@ -113,16 +124,6 @@ const {
             >
               编辑
             </el-button>
-            <el-button
-              class="reset-margin"
-              link
-              type="primary"
-              :size="size"
-              :icon="useRenderIcon(EditPen)"
-              @click="showEditDialog('edit', row)"
-            >
-              试题管理
-            </el-button>
             <el-popconfirm title="是否确认删除?" @confirm="handleDelete(row)">
               <template #reference>
                 <el-button
@@ -136,12 +137,21 @@ const {
                 </el-button>
               </template>
             </el-popconfirm>
+            <el-button
+              class="reset-margin"
+              link
+              type="primary"
+              :size="size"
+              :icon="useRenderIcon(EditPen)"
+            >
+              发布
+            </el-button>
           </template>
         </pure-table>
       </template>
     </PureTableBar>
 
-    <el-dialog
+    <!-- <el-dialog
       v-model="editDialogVisible"
       :title="editDialogTitle"
       width="50%"
@@ -161,18 +171,28 @@ const {
             v-model="editForm.name"
             maxlength="50"
             show-word-limit
-            placeholder="请输入知识点名称"
+            placeholder="请输入试卷名称"
             style="width: 80%"
           />
         </el-form-item>
-        <el-form-item prop="desc" label="说明">
+        <el-form-item prop="score" label="总分">
+          <el-input-number v-model="editForm.score" :min="1" :max="1000" />
+        </el-form-item>
+        <el-form-item prop="pass_score" label="及格分">
+          <el-input-number
+            v-model="editForm.pass_score"
+            :min="1"
+            :max="aiForm.score"
+          />
+        </el-form-item>
+        <el-form-item prop="meme" label="备注">
           <el-input
-            v-model="editForm.desc"
+            v-model="editForm.memo"
             type="textarea"
             minlength="1"
             maxlength="255"
             show-word-limit
-            placeholder="请输入知识点说明"
+            placeholder="请输入备注"
             :autosize="{ minRows: 3, maxRows: 6 }"
             style="width: 80%"
           />
@@ -182,6 +202,582 @@ const {
         <span class="dialog-footer">
           <el-button @click="editDialogVisible = false">取消</el-button>
           <el-button type="primary" @click="submitEditForm">提交</el-button>
+        </span>
+      </template>
+    </el-dialog>-->
+
+    <el-dialog
+      v-model="editDialogVisible"
+      :title="editDialogTitle"
+      width="80%"
+      draggable
+      center
+      align-center
+      destroy-on-close
+    >
+      <el-scrollbar max-height="60vh">
+        <el-form
+          ref="editFormRef"
+          :model="editForm"
+          :rules="editRule"
+          label-position="top"
+        >
+          <el-form-item prop="name" label="名称">
+            <el-input
+              v-model="editForm.name"
+              maxlength="50"
+              show-word-limit
+              placeholder="请输入试卷名称"
+              style="width: 80%"
+            />
+          </el-form-item>
+          <el-form-item prop="score" label="总分（完成题型设置后系统自动计算）">
+            <el-input
+              v-model="editForm.score"
+              maxlength="50"
+              show-word-limit
+              placeholder="试卷总分"
+              style="width: 80%"
+              disabled
+            />
+          </el-form-item>
+          <el-form-item
+            prop="pass_score"
+            label="及格分（请完成题型设置后调整）"
+          >
+            <el-input-number
+              v-model="editForm.pass_score"
+              :min="1"
+              :max="aiForm.score"
+            />
+          </el-form-item>
+          <el-form-item
+            prop="difficulty"
+            label="难度（0.01~1，数值越大难度越大）"
+          >
+            <el-input-number
+              v-model="editForm.difficulty"
+              :precision="2"
+              :step="0.1"
+              :min="0.01"
+              :max="1"
+            />
+          </el-form-item>
+          <el-form-item prop="meme" label="备注">
+            <el-input
+              v-model="editForm.memo"
+              type="textarea"
+              minlength="1"
+              maxlength="255"
+              show-word-limit
+              placeholder="请输入备注"
+              :autosize="{ minRows: 3, maxRows: 6 }"
+              style="width: 80%"
+            />
+          </el-form-item>
+          <el-divider />
+          <p class="text-center">题型设置</p>
+          <el-divider />
+          <div>
+            <p class="mb-2"><el-tag size="large">单选题设置</el-tag></p>
+            <el-space
+              :size="20"
+              :spacer="h(ElDivider, { direction: 'vertical' })"
+            >
+              <el-form-item prop="choice_single_num" label="试题数量">
+                <el-input-number
+                  v-model="editForm.choice_single_num"
+                  :min="0"
+                  :max="100"
+                />
+              </el-form-item>
+              <el-form-item prop="choice_single_score" label="每题分值">
+                <el-input-number
+                  v-model="editForm.choice_single_score"
+                  :min="1"
+                  :max="1000"
+                  :disabled="editForm.choice_single_num <= 0"
+                />
+              </el-form-item>
+            </el-space>
+            <template
+              v-for="(question, questionIndex) in questionBlock[0].list"
+              :key="questionIndex"
+            >
+              <el-form-item
+                prop="name"
+                :label="question.sort + '. ' + question.content"
+              >
+                <el-radio-group v-model="question.answer" class="clear-both">
+                  <el-space direction="vertical" alignment="start">
+                    <el-radio
+                      v-for="(option, optionIndex) in question.options"
+                      :key="optionIndex"
+                      :label="option.tag"
+                      >{{ option.content }}</el-radio
+                    >
+                  </el-space>
+                </el-radio-group>
+              </el-form-item>
+              <el-button-group>
+                <el-button type="primary" :icon="useRenderIcon(ArrowUp)"
+                  >上移</el-button
+                >
+                <el-button type="primary" :icon="useRenderIcon(ArrowDown)"
+                  >下移</el-button
+                >
+                <el-button type="primary" :icon="useRenderIcon(EditPen)"
+                  >替换</el-button
+                >
+                <el-button type="danger" :icon="useRenderIcon(Delete)"
+                  >删除</el-button
+                >
+              </el-button-group>
+              <el-divider />
+            </template>
+          </div>
+          <el-divider />
+          <div>
+            <p class="mb-2"><el-tag size="large">多选题设置</el-tag></p>
+            <el-space
+              :size="20"
+              :spacer="h(ElDivider, { direction: 'vertical' })"
+            >
+              <el-form-item prop="choice_multi_num" label="试题数量">
+                <el-input-number
+                  v-model="editForm.choice_multi_num"
+                  :min="0"
+                  :max="100"
+                />
+              </el-form-item>
+              <el-form-item prop="choice_multi_score" label="每题分值">
+                <el-input-number
+                  v-model="editForm.choice_multi_score"
+                  :min="1"
+                  :max="1000"
+                  :disabled="editForm.choice_multi_num <= 0"
+                />
+              </el-form-item>
+            </el-space>
+            <template
+              v-for="(question, questionIndex) in questionBlock[1].list"
+              :key="questionIndex"
+            >
+              <el-form-item
+                prop="name"
+                :label="question.sort + '. ' + question.content"
+              >
+                <el-checkbox-group v-model="question.answer_multi">
+                  <el-space direction="vertical" alignment="start">
+                    <el-checkbox
+                      v-for="(option, optionIndex) in question.options"
+                      :key="optionIndex"
+                      :label="option.tag"
+                      >{{ option.content }}</el-checkbox
+                    >
+                  </el-space>
+                </el-checkbox-group>
+              </el-form-item>
+              <el-button-group>
+                <el-button type="primary" :icon="useRenderIcon(ArrowUp)"
+                  >上移</el-button
+                >
+                <el-button type="primary" :icon="useRenderIcon(ArrowDown)"
+                  >下移</el-button
+                >
+                <el-button type="primary" :icon="useRenderIcon(EditPen)"
+                  >替换</el-button
+                >
+                <el-button type="danger" :icon="useRenderIcon(Delete)"
+                  >删除</el-button
+                >
+              </el-button-group>
+              <el-divider />
+            </template>
+          </div>
+          <el-divider />
+          <div>
+            <p class="mb-2"><el-tag size="large">判断题设置</el-tag></p>
+            <el-space
+              :size="20"
+              :spacer="h(ElDivider, { direction: 'vertical' })"
+            >
+              <el-form-item prop="judge_num" label="试题数量">
+                <el-input-number
+                  v-model="editForm.judge_num"
+                  :min="0"
+                  :max="100"
+                />
+              </el-form-item>
+              <el-form-item prop="judeg_score" label="每题分值">
+                <el-input-number
+                  v-model="editForm.judge_score"
+                  :min="1"
+                  :max="1000"
+                  :disabled="editForm.judge_num <= 0"
+                />
+              </el-form-item>
+            </el-space>
+            <template
+              v-for="(question, questionIndex) in questionBlock[2].list"
+              :key="questionIndex"
+            >
+              <el-form-item
+                prop="name"
+                :label="question.sort + '. ' + question.content"
+              >
+                <el-radio-group v-model="question.answer">
+                  <el-space direction="vertical" alignment="start">
+                    <el-radio
+                      v-for="(option, optionIndex) in question.options"
+                      :key="optionIndex"
+                      :label="option.tag"
+                      >{{ option.content }}</el-radio
+                    >
+                  </el-space>
+                </el-radio-group>
+              </el-form-item>
+              <el-button-group>
+                <el-button type="primary" :icon="useRenderIcon(ArrowUp)"
+                  >上移</el-button
+                >
+                <el-button type="primary" :icon="useRenderIcon(ArrowDown)"
+                  >下移</el-button
+                >
+                <el-button type="primary" :icon="useRenderIcon(EditPen)"
+                  >替换</el-button
+                >
+                <el-button type="danger" :icon="useRenderIcon(Delete)"
+                  >删除</el-button
+                >
+              </el-button-group>
+              <el-divider />
+            </template>
+          </div>
+          <el-divider />
+          <div>
+            <p class="mb-2"><el-tag size="large">填空题设置</el-tag></p>
+            <el-space
+              :size="20"
+              :spacer="h(ElDivider, { direction: 'vertical' })"
+            >
+              <el-form-item prop="blank_single_num" label="试题数量">
+                <el-input-number
+                  v-model="editForm.blank_single_num"
+                  :min="0"
+                  :max="100"
+                />
+              </el-form-item>
+              <el-form-item prop="blank_single_score" label="每题分值">
+                <el-input-number
+                  v-model="editForm.blank_single_score"
+                  :min="1"
+                  :max="1000"
+                  :disabled="editForm.blank_single_num <= 0"
+                />
+              </el-form-item>
+            </el-space>
+            <template
+              v-for="(question, questionIndex) in questionBlock[3].list"
+              :key="questionIndex"
+            >
+              <el-form-item
+                prop="name"
+                :label="question.sort + '. ' + question.content"
+              >
+                <el-radio-group v-model="question.answer" class="clear-both">
+                  <el-space direction="vertical" alignment="start">
+                    <el-radio
+                      v-for="(option, optionIndex) in question.options"
+                      :key="optionIndex"
+                      :label="option.tag"
+                      >{{ option.content }}</el-radio
+                    >
+                  </el-space>
+                </el-radio-group>
+              </el-form-item>
+              <el-button-group>
+                <el-button type="primary" :icon="useRenderIcon(ArrowUp)"
+                  >上移</el-button
+                >
+                <el-button type="primary" :icon="useRenderIcon(ArrowDown)"
+                  >下移</el-button
+                >
+                <el-button type="primary" :icon="useRenderIcon(EditPen)"
+                  >替换</el-button
+                >
+                <el-button type="danger" :icon="useRenderIcon(Delete)"
+                  >删除</el-button
+                >
+              </el-button-group>
+              <el-divider />
+            </template>
+          </div>
+          <el-divider />
+          <div>
+            <p class="mb-2"><el-tag size="large">简答题设置</el-tag></p>
+            <el-space
+              :size="20"
+              :spacer="h(ElDivider, { direction: 'vertical' })"
+            >
+              <el-form-item prop="answer_single_num" label="试题数量">
+                <el-input-number
+                  v-model="editForm.answer_single_num"
+                  :min="0"
+                  :max="100"
+                />
+              </el-form-item>
+              <el-form-item prop="answer_single_score" label="每题分值">
+                <el-input-number
+                  v-model="editForm.answer_single_score"
+                  :min="1"
+                  :max="1000"
+                  :disabled="editForm.answer_single_num <= 0"
+                />
+              </el-form-item>
+            </el-space>
+            <template
+              v-for="(question, questionIndex) in questionBlock[5].list"
+              :key="questionIndex"
+            >
+              <el-form-item
+                prop="name"
+                :label="question.sort + '. ' + question.content"
+              >
+                <el-input
+                  v-model="question.answer"
+                  type="textarea"
+                  minlength="1"
+                  maxlength="5000"
+                  show-word-limit
+                  placeholder=""
+                  :autosize="{ minRows: 6, maxRows: 12 }"
+                />
+              </el-form-item>
+              <el-button-group>
+                <el-button type="primary" :icon="useRenderIcon(ArrowUp)"
+                  >上移</el-button
+                >
+                <el-button type="primary" :icon="useRenderIcon(ArrowDown)"
+                  >下移</el-button
+                >
+                <el-button type="primary" :icon="useRenderIcon(EditPen)"
+                  >替换</el-button
+                >
+                <el-button type="danger" :icon="useRenderIcon(Delete)"
+                  >删除</el-button
+                >
+              </el-button-group>
+              <el-divider />
+            </template>
+          </div>
+        </el-form>
+      </el-scrollbar>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="editDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitEditForm">提交</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <el-dialog
+      v-model="aiDialogVisible"
+      :title="aiDialogTitle"
+      width="80%"
+      draggable
+      center
+      align-center
+      destroy-on-close
+    >
+      <el-scrollbar max-height="60vh">
+        <el-form
+          ref="aiFormRef"
+          :model="aiForm"
+          :rules="aiRule"
+          label-position="top"
+        >
+          <el-form-item prop="name" label="名称">
+            <el-input
+              v-model="aiForm.name"
+              maxlength="50"
+              show-word-limit
+              placeholder="请输入试卷名称"
+              style="width: 80%"
+            />
+          </el-form-item>
+          <el-form-item prop="score" label="总分（完成题型设置后系统自动计算）">
+            <el-input
+              v-model="aiForm.score"
+              maxlength="50"
+              show-word-limit
+              placeholder="试卷总分"
+              style="width: 80%"
+              disabled
+            />
+          </el-form-item>
+          <el-form-item
+            prop="pass_score"
+            label="及格分（请完成题型设置后调整）"
+          >
+            <el-input-number
+              v-model="aiForm.pass_score"
+              :min="1"
+              :max="aiForm.score"
+            />
+          </el-form-item>
+          <el-form-item
+            prop="difficulty"
+            label="难度（0.01~1，数值越大难度越大）"
+          >
+            <el-input-number
+              v-model="aiForm.difficulty"
+              :precision="2"
+              :step="0.1"
+              :min="0.01"
+              :max="1"
+            />
+          </el-form-item>
+          <el-form-item prop="meme" label="备注">
+            <el-input
+              v-model="aiForm.memo"
+              type="textarea"
+              minlength="1"
+              maxlength="255"
+              show-word-limit
+              placeholder="请输入备注"
+              :autosize="{ minRows: 3, maxRows: 6 }"
+              style="width: 80%"
+            />
+          </el-form-item>
+          <el-divider />
+          <p class="text-center">题型设置</p>
+          <el-divider />
+          <div>
+            <p class="mb-2"><el-tag size="large">单选题设置</el-tag></p>
+            <el-space
+              :size="20"
+              :spacer="h(ElDivider, { direction: 'vertical' })"
+            >
+              <el-form-item prop="choice_single_num" label="试题数量">
+                <el-input-number
+                  v-model="aiForm.choice_single_num"
+                  :min="0"
+                  :max="100"
+                />
+              </el-form-item>
+              <el-form-item prop="choice_single_score" label="每题分值">
+                <el-input-number
+                  v-model="aiForm.choice_single_score"
+                  :min="1"
+                  :max="1000"
+                  :disabled="aiForm.choice_single_num <= 0"
+                />
+              </el-form-item>
+            </el-space>
+          </div>
+          <el-divider />
+          <div>
+            <p class="mb-2"><el-tag size="large">多选题设置</el-tag></p>
+            <el-space
+              :size="20"
+              :spacer="h(ElDivider, { direction: 'vertical' })"
+            >
+              <el-form-item prop="choice_multi_num" label="试题数量">
+                <el-input-number
+                  v-model="aiForm.choice_multi_num"
+                  :min="0"
+                  :max="100"
+                />
+              </el-form-item>
+              <el-form-item prop="choice_multi_score" label="每题分值">
+                <el-input-number
+                  v-model="aiForm.choice_multi_score"
+                  :min="1"
+                  :max="1000"
+                  :disabled="aiForm.choice_multi_num <= 0"
+                />
+              </el-form-item>
+            </el-space>
+          </div>
+          <el-divider />
+          <div>
+            <p class="mb-2"><el-tag size="large">判断题设置</el-tag></p>
+            <el-space
+              :size="20"
+              :spacer="h(ElDivider, { direction: 'vertical' })"
+            >
+              <el-form-item prop="judge_num" label="试题数量">
+                <el-input-number
+                  v-model="aiForm.judge_num"
+                  :min="0"
+                  :max="100"
+                />
+              </el-form-item>
+              <el-form-item prop="judeg_score" label="每题分值">
+                <el-input-number
+                  v-model="aiForm.judge_score"
+                  :min="1"
+                  :max="1000"
+                  :disabled="aiForm.judge_num <= 0"
+                />
+              </el-form-item>
+            </el-space>
+          </div>
+          <el-divider />
+          <div>
+            <p class="mb-2"><el-tag size="large">填空题设置</el-tag></p>
+            <el-space
+              :size="20"
+              :spacer="h(ElDivider, { direction: 'vertical' })"
+            >
+              <el-form-item prop="blank_single_num" label="试题数量">
+                <el-input-number
+                  v-model="aiForm.blank_single_num"
+                  :min="0"
+                  :max="100"
+                />
+              </el-form-item>
+              <el-form-item prop="blank_single_score" label="每题分值">
+                <el-input-number
+                  v-model="aiForm.blank_single_score"
+                  :min="1"
+                  :max="1000"
+                  :disabled="aiForm.blank_single_num <= 0"
+                />
+              </el-form-item>
+            </el-space>
+          </div>
+          <el-divider />
+          <div>
+            <p class="mb-2"><el-tag size="large">简答题设置</el-tag></p>
+            <el-space
+              :size="20"
+              :spacer="h(ElDivider, { direction: 'vertical' })"
+            >
+              <el-form-item prop="answer_single_num" label="试题数量">
+                <el-input-number
+                  v-model="aiForm.answer_single_num"
+                  :min="0"
+                  :max="100"
+                />
+              </el-form-item>
+              <el-form-item prop="answer_single_score" label="每题分值">
+                <el-input-number
+                  v-model="aiForm.answer_single_score"
+                  :min="1"
+                  :max="1000"
+                  :disabled="aiForm.answer_single_num <= 0"
+                />
+              </el-form-item>
+            </el-space>
+          </div>
+        </el-form>
+      </el-scrollbar>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="aiDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitAiEditForm">提交</el-button>
         </span>
       </template>
     </el-dialog>

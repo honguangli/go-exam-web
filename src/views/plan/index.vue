@@ -5,6 +5,7 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 
 import Delete from "@iconify-icons/ep/delete";
+import More from "@iconify-icons/ep/more-filled";
 import EditPen from "@iconify-icons/ep/edit-pen";
 import Role from "@iconify-icons/ri/admin-line";
 import Search from "@iconify-icons/ep/search";
@@ -144,16 +145,37 @@ const {
                 </el-button>
               </template>
             </el-popconfirm>
-            <el-button
-              class="reset-margin"
-              link
-              type="primary"
-              :size="size"
-              :icon="useRenderIcon(Role)"
-              @click="showPlanClassListDialog(row)"
-            >
-              班级管理
-            </el-button>
+            <el-dropdown trigger="click">
+              <el-button
+                class="ml-3 mt-[2px]"
+                link
+                type="primary"
+                :size="size"
+                :icon="useRenderIcon(More)"
+              />
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item
+                    :icon="useRenderIcon(Role)"
+                    @click="showPlanClassListDialog(row)"
+                  >
+                    班级管理
+                  </el-dropdown-item>
+                  <el-dropdown-item :icon="useRenderIcon(EditPen)">
+                    发布
+                  </el-dropdown-item>
+                  <el-dropdown-item :icon="useRenderIcon(EditPen)">
+                    阅卷
+                  </el-dropdown-item>
+                  <el-dropdown-item :icon="useRenderIcon(EditPen)">
+                    公布成绩
+                  </el-dropdown-item>
+                  <el-dropdown-item :icon="useRenderIcon(EditPen)">
+                    成绩管理
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </pure-table>
       </template>

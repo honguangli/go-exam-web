@@ -13,16 +13,16 @@ import Motion from "./utils/motion";
 import { useRouter } from "vue-router";
 import { message } from "@/utils/message";
 import { loginRules } from "./utils/rule";
-import phone from "./components/phone.vue";
+//import phone from "./components/phone.vue";
 import TypeIt from "@/components/ReTypeit";
-import qrCode from "./components/qrCode.vue";
-import regist from "./components/regist.vue";
-import update from "./components/update.vue";
+//import qrCode from "./components/qrCode.vue";
+//import regist from "./components/regist.vue";
+//import update from "./components/update.vue";
 import { initRouter } from "@/router/utils";
 import { useNav } from "@/layout/hooks/useNav";
 import type { FormInstance } from "element-plus";
 import { $t, transformI18n } from "@/plugins/i18n";
-import { operates, thirdParty } from "./utils/enums";
+// import { operates, thirdParty } from "./utils/enums";
 import { useLayout } from "@/layout/hooks/useLayout";
 import { useUserStoreHook } from "@/store/modules/user";
 import { bg, avatar, illustration } from "./utils/static";
@@ -226,13 +226,13 @@ watch(imgCode, value => {
                   <el-checkbox v-model="checked">
                     {{ t("login.remember") }}
                   </el-checkbox>
-                  <el-button
+                  <!-- <el-button
                     link
                     type="primary"
                     @click="useUserStoreHook().SET_CURRENTPAGE(4)"
                   >
                     {{ t("login.forget") }}
-                  </el-button>
+                  </el-button> -->
                 </div>
                 <el-button
                   class="w-full mt-4"
@@ -246,7 +246,7 @@ watch(imgCode, value => {
               </el-form-item>
             </Motion>
 
-            <Motion :delay="300">
+            <!-- <Motion :delay="300">
               <el-form-item>
                 <div class="w-full h-[20px] flex justify-between items-center">
                   <el-button
@@ -260,10 +260,10 @@ watch(imgCode, value => {
                   </el-button>
                 </div>
               </el-form-item>
-            </Motion>
+            </Motion> -->
           </el-form>
 
-          <Motion v-if="currentPage === 0" :delay="350">
+          <!-- <Motion v-if="currentPage === 0" :delay="350">
             <el-form-item>
               <el-divider>
                 <p class="text-gray-500 text-xs">{{ t("login.thirdLogin") }}</p>
@@ -282,15 +282,15 @@ watch(imgCode, value => {
                 </span>
               </div>
             </el-form-item>
-          </Motion>
+          </Motion> -->
           <!-- 手机号登录 -->
-          <phone v-if="currentPage === 1" />
+          <!-- <phone v-if="currentPage === 1" /> -->
           <!-- 二维码登录 -->
-          <qrCode v-if="currentPage === 2" />
+          <!-- <qrCode v-if="currentPage === 2" /> -->
           <!-- 注册 -->
-          <regist v-if="currentPage === 3" />
+          <!-- <regist v-if="currentPage === 3" /> -->
           <!-- 忘记密码 -->
-          <update v-if="currentPage === 4" />
+          <!-- <update v-if="currentPage === 4" /> -->
         </div>
       </div>
     </div>

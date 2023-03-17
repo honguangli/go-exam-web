@@ -114,7 +114,7 @@ export function useHook() {
     content: "",
     tips: "",
     analysis: "",
-    difficulty: 50,
+    difficulty: 0.5,
     knowledge_ids: "",
     score: 1,
     status: QuestionStatus.Enable,
@@ -216,7 +216,7 @@ export function useHook() {
       editForm.content = "";
       editForm.tips = "";
       editForm.analysis = "";
-      editForm.difficulty = 50;
+      editForm.difficulty = 0.5;
       editForm.score = 1;
       editForm.memo = "";
       editForm.options = [

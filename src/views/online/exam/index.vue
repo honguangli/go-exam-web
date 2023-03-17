@@ -34,14 +34,30 @@ const { questionList, questionBlock, submitEditForm } = useHook();
             </template>
             张三
           </el-descriptions-item>
+          <el-descriptions-item>
+            <template #label>
+              <div class="cell-item">考试时长</div>
+            </template>
+            90分钟
+          </el-descriptions-item>
+          <el-descriptions-item>
+            <template #label>
+              <div class="cell-item">剩余时长</div>
+            </template>
+            <el-tag type="danger" size="large">88分钟23秒</el-tag>
+          </el-descriptions-item>
         </el-descriptions>
       </el-card>
       <el-card class="box-card">
         <el-row :gutter="20" style="margin-bottom: 10px">
           <el-col :span="6">答题卡</el-col>
           <el-col :span="6" :offset="12">
-            <el-tag class="ml-2" type="success">已作答</el-tag>
-            <el-tag class="ml-2" type="info">未作答</el-tag>
+            <el-tag class="ml-2" type="success" effect="dark" size="large"
+              >已作答</el-tag
+            >
+            <el-tag class="ml-2" type="info" effect="dark" size="large"
+              >未作答</el-tag
+            >
           </el-col>
         </el-row>
         <el-row :gutter="20">
@@ -51,11 +67,18 @@ const { questionList, questionBlock, submitEditForm } = useHook();
                 v-if="item.answer === '' && item.answer_multi.length === 0"
                 class="ml-2"
                 type="info"
+                effect="dark"
+                size="large"
                 >{{ index + 1 }}</el-tag
               >
-              <el-tag v-else class="ml-2" type="success">{{
-                index + 1
-              }}</el-tag>
+              <el-tag
+                v-else
+                class="ml-2"
+                type="success"
+                effect="dark"
+                size="large"
+                >{{ index + 1 }}</el-tag
+              >
             </template>
           </el-col>
         </el-row>

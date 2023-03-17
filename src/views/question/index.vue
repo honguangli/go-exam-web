@@ -215,7 +215,7 @@ const {
           </el-form-item>
           <el-form-item
             prop="difficulty"
-            label="难度系数（1~100，数值越大难度越大）"
+            label="难度（0.01~1，数值越大难度越大）"
           >
             <!-- <el-radio-group v-model.number="editForm.difficulty" size="large">
               <el-space wrap>
@@ -239,9 +239,10 @@ const {
 
             <el-input-number
               v-model="editForm.difficulty"
-              :step="5"
-              :min="1"
-              :max="100"
+              :precision="2"
+              :step="0.1"
+              :min="0.01"
+              :max="1"
             />
           </el-form-item>
           <!-- <el-form-item prop="score" label="分值">
