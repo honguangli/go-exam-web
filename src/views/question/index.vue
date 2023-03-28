@@ -21,6 +21,8 @@ const {
   columns,
   dataList,
   pagination,
+  subjectList,
+  knowledgeList,
   editDialogVisible,
   editDialogTitle,
   editFormRef,
@@ -159,34 +161,46 @@ const {
       destroy-on-close
     >
       <el-scrollbar max-height="60vh">
-        <el-form
-          ref="editFormRef"
-          :model="editForm"
-          :rules="editFormRule"
-          label-position="top"
-        >
-          <el-form-item prop="subject_id" label="科目">
+        <el-form ref="editFormRef" :model="editForm" label-position="top">
+          <el-form-item
+            prop="subject_id"
+            :rules="editFormRule.subject_id"
+            label="科目"
+          >
             <el-select
               v-model="editForm.subject_id"
               placeholder="请选择科目"
               style="width: 50%"
             >
-              <el-option label="C语言程序设计" :value="0" />
-              <el-option label="Zone two" :value="2" />
+              <el-option label="请选择" :value="0" />
+              <el-option
+                v-for="(item, index) in subjectList"
+                :key="index"
+                :label="item.name"
+                :value="item.id"
+              />
             </el-select>
           </el-form-item>
-          <el-form-item prop="knowledge_ids" label="知识点">
+          <el-form-item
+            prop="knowledge_ids"
+            :rules="editFormRule.knowledge_ids"
+            label="知识点"
+          >
             <el-select
               v-model="editForm.knowledge_ids"
               multiple
               placeholder="请选择知识点"
               style="width: 50%"
             >
-              <el-option label="网络协议与标准" :value="0" />
-              <el-option label="TCP/IP" :value="2" />
+              <el-option
+                v-for="(item, index) in knowledgeList"
+                :key="index"
+                :label="item.name"
+                :value="item.id"
+              />
             </el-select>
           </el-form-item>
-          <el-form-item prop="type" label="题型">
+          <el-form-item prop="type" :rules="editFormRule.type" label="题型">
             <el-radio-group v-model.number="editForm.type" size="large">
               <el-space wrap>
                 <el-radio :label="QuestionType.ChoiceSingle" border
@@ -199,15 +213,15 @@ const {
                 <el-radio :label="QuestionType.BlankSingle" border
                   >填空题</el-radio
                 >
-                <el-radio :label="QuestionType.BlankMulti" border
+                <!-- <el-radio :label="QuestionType.BlankMulti" border
                   >多项填空题</el-radio
-                >
+                > -->
                 <el-radio :label="QuestionType.AnswerSingle" border
                   >简答题</el-radio
                 >
-                <el-radio :label="QuestionType.AnswerMulti" border
+                <!-- <el-radio :label="QuestionType.AnswerMulti" border
                   >多项简答题</el-radio
-                >
+                > -->
                 <!-- <el-radio :label="QuestionType.FileSingle" border>文件题</el-radio>
                 <el-radio :label="QuestionType.FileMulti" border>多项文件题</el-radio> -->
               </el-space>
@@ -215,28 +229,9 @@ const {
           </el-form-item>
           <el-form-item
             prop="difficulty"
+            :rules="editFormRule.difficulty"
             label="难度（0.01~1，数值越大难度越大）"
           >
-            <!-- <el-radio-group v-model.number="editForm.difficulty" size="large">
-              <el-space wrap>
-                <el-radio :label="QuestionDifficulty.Simple" border
-                  >简单</el-radio
-                >
-                <el-radio :label="QuestionDifficulty.MiddleSimple" border
-                  >较简单</el-radio
-                >
-                <el-radio :label="QuestionDifficulty.Normal" border
-                  >普通</el-radio
-                >
-                <el-radio :label="QuestionDifficulty.MiddleHard" border
-                  >较难</el-radio
-                >
-                <el-radio :label="QuestionDifficulty.Hard" border
-                  >困难</el-radio
-                >
-              </el-space>
-            </el-radio-group> -->
-
             <el-input-number
               v-model="editForm.difficulty"
               :precision="2"
@@ -245,75 +240,182 @@ const {
               :max="1"
             />
           </el-form-item>
-          <!-- <el-form-item prop="score" label="分值">
-            <el-input-number v-model="editForm.score" :min="1" :max="100" />
-          </el-form-item> -->
-          <!-- <el-form-item prop="name" label="题干">
-            <el-input
-              v-model="editForm.name"
-              type="textarea"
-              maxlength="1000"
-              minlength="1"
-              show-word-limit
-              placeholder="请输入"
-              :autosize="{ minRows: 3, maxRows: 6 }"
-              style="width: 80%"
+          <el-form-item
+            prop="content"
+            :rules="editFormRule.content"
+            label="题干"
+          >
+            <Editor
+              v-model:html="editForm.content"
+              v-model:text="editForm.name"
             />
-          </el-form-item> -->
-          <el-form-item prop="content" label="题干">
-            <Editor v-model="editForm.content" />
           </el-form-item>
           <el-divider />
           <template v-if="editForm.type === QuestionType.ChoiceSingle">
-            <div><el-tag>选项列表</el-tag></div>
-            <el-radio-group
-              v-model.number="editForm.difficulty"
-              size="large"
-              style="width: 100%"
+            <div><el-tag size="large">选项列表</el-tag></div>
+            <el-form-item
+              prop="right_option"
+              :rules="editFormRule.choice_single"
             >
-              <div
-                v-for="(item, index) in editForm.options"
-                :key="index"
-                style="width: 100%"
+              <el-radio-group
+                v-model.number="editForm.right_option"
+                size="large"
+                style="width: 100%; padding-bottom: 20px"
               >
-                <el-divider />
-                <el-form-item
-                  prop="name"
-                  :label="transformOptionTag(index + 1)"
+                <div
+                  v-for="(item, index) in editForm.options"
+                  :key="index"
+                  style="width: 100%"
                 >
-                  <el-input
-                    v-model="item.content"
-                    type="textarea"
-                    maxlength="1000"
-                    minlength="1"
-                    show-word-limit
-                    placeholder="请输入选项内容"
-                    :autosize="{ minRows: 3, maxRows: 6 }"
-                    style="width: 80%"
-                  />
-                </el-form-item>
-                <el-space wrap>
-                  <el-radio :label="index" border>正确答案</el-radio>
-                  <el-button
-                    type="primary"
-                    :icon="useRenderIcon(AddFill)"
-                    :disabled="editForm.options.length >= 7"
-                    circle
-                    @click="addOption(index)"
-                  />
-                  <el-button
-                    type="danger"
-                    :icon="useRenderIcon(Delete)"
-                    :disabled="editForm.options.length <= 2"
-                    circle
-                    @click="deleteOption(index)"
-                  />
-                </el-space>
-              </div>
-            </el-radio-group>
+                  <el-divider />
+                  <el-row :gutter="20" style="margin-left: 0; margin-right: 0">
+                    <el-col :span="16">
+                      <el-form-item
+                        :prop="'options.' + index + '.content'"
+                        :rules="editFormRule.choice_option"
+                        :label="'选项 ' + transformOptionTag(index + 1)"
+                      >
+                        <el-input
+                          v-model="item.content"
+                          type="textarea"
+                          maxlength="1000"
+                          minlength="1"
+                          show-word-limit
+                          placeholder="请输入选项内容"
+                          :autosize="{ minRows: 3, maxRows: 6 }"
+                        />
+                      </el-form-item>
+                    </el-col>
+                    <el-col :span="8">
+                      <el-space wrap>
+                        <el-radio :label="index + 1" border>正确答案</el-radio>
+                        <el-button
+                          type="primary"
+                          :icon="useRenderIcon(AddFill)"
+                          :disabled="editForm.options.length >= 7"
+                          circle
+                          @click="addOption(index)"
+                        />
+                        <el-button
+                          type="danger"
+                          :icon="useRenderIcon(Delete)"
+                          :disabled="editForm.options.length <= 2"
+                          circle
+                          @click="deleteOption(index)"
+                        />
+                      </el-space>
+                    </el-col>
+                  </el-row>
+                </div>
+              </el-radio-group>
+            </el-form-item>
           </template>
-          <template v-else-if="editForm.type === QuestionType.ChoiceMulti" />
-          <template v-else-if="editForm.type === QuestionType.Judge" />
+          <template v-else-if="editForm.type === QuestionType.ChoiceMulti">
+            <div><el-tag size="large">选项列表</el-tag></div>
+            <el-form-item
+              prop="right_options"
+              :rules="editFormRule.choice_multi"
+            >
+              <el-checkbox-group
+                v-model="editForm.right_options"
+                size="large"
+                style="width: 100%; padding-bottom: 20px"
+              >
+                <div
+                  v-for="(item, index) in editForm.options"
+                  :key="index"
+                  style="width: 100%"
+                >
+                  <el-divider />
+                  <el-row :gutter="20" style="margin-left: 0; margin-right: 0">
+                    <el-col :span="16">
+                      <el-form-item
+                        :prop="'options.' + index + '.content'"
+                        :rules="editFormRule.choice_option"
+                        :label="'选项 ' + transformOptionTag(index + 1)"
+                      >
+                        <el-input
+                          v-model="item.content"
+                          type="textarea"
+                          maxlength="1000"
+                          minlength="1"
+                          show-word-limit
+                          placeholder="请输入选项内容"
+                          :autosize="{ minRows: 3, maxRows: 6 }"
+                        />
+                      </el-form-item>
+                    </el-col>
+                    <el-col :span="8">
+                      <el-space wrap>
+                        <el-checkbox :label="index + 1" border
+                          >正确答案</el-checkbox
+                        >
+                        <el-button
+                          type="primary"
+                          :icon="useRenderIcon(AddFill)"
+                          :disabled="editForm.options.length >= 7"
+                          circle
+                          @click="addOption(index)"
+                        />
+                        <el-button
+                          type="danger"
+                          :icon="useRenderIcon(Delete)"
+                          :disabled="editForm.options.length <= 2"
+                          circle
+                          @click="deleteOption(index)"
+                        />
+                      </el-space>
+                    </el-col>
+                  </el-row>
+                </div>
+              </el-checkbox-group>
+            </el-form-item>
+          </template>
+          <template v-else-if="editForm.type === QuestionType.Judge">
+            <div><el-tag size="large">选项列表</el-tag></div>
+            <el-form-item
+              prop="right_option"
+              :rules="editFormRule.choice_single"
+            >
+              <el-radio-group
+                v-model.number="editForm.right_option"
+                size="large"
+                style="width: 100%; padding-bottom: 20px"
+              >
+                <div
+                  v-for="(item, index) in editForm.options"
+                  :key="index"
+                  style="width: 100%"
+                >
+                  <el-divider />
+                  <el-row :gutter="20" style="margin-left: 0; margin-right: 0">
+                    <el-col :span="16">
+                      <el-form-item
+                        :prop="'options.' + index + '.content'"
+                        :rules="editFormRule.choice_option"
+                        :label="'选项 ' + transformOptionTag(index + 1)"
+                      >
+                        <el-input
+                          v-model="item.content"
+                          type="textarea"
+                          maxlength="1000"
+                          minlength="1"
+                          show-word-limit
+                          placeholder="请输入选项内容"
+                          :autosize="{ minRows: 3, maxRows: 6 }"
+                        />
+                      </el-form-item>
+                    </el-col>
+                    <el-col :span="8">
+                      <el-space wrap>
+                        <el-radio :label="index + 1" border>正确答案</el-radio>
+                      </el-space>
+                    </el-col>
+                  </el-row>
+                </div>
+              </el-radio-group>
+            </el-form-item>
+          </template>
           <template v-else-if="editForm.type === QuestionType.BlankSingle" />
           <template v-else-if="editForm.type === QuestionType.BlankMulti" />
           <template v-else-if="editForm.type === QuestionType.AnswerSingle" />

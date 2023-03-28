@@ -23,15 +23,18 @@ import "@wangeditor/editor/dist/css/style.css"; // 引入 css
 import { IDomEditor, DomEditor, IToolbarConfig } from "@wangeditor/editor";
 import { Editor, Toolbar } from "@wangeditor/editor-for-vue";
 
-const props = defineProps(["modelValue"]);
-const emit = defineEmits(["update:modelValue"]);
+const props = defineProps({
+  html: String,
+  text: String
+});
+const emit = defineEmits(["update:html", "update:text"]);
 
 const value = computed({
   get() {
-    return props.modelValue;
+    return props.html;
   },
   set(value) {
-    emit("update:modelValue", value);
+    emit("update:html", value);
   }
 });
 
@@ -62,6 +65,7 @@ const editorConfig = { placeholder: "请输入内容..." };
 
 function onChange(editor: IDomEditor) {
   console.log("onChange", editor.getHtml(), editor.getText());
+  emit("update:text", editor.getText());
 
   const toolbar = DomEditor.getToolbar(editorRef.value);
 
