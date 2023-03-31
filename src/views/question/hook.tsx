@@ -93,7 +93,7 @@ export function useHook() {
       )
     },
     {
-      label: "难度系数",
+      label: "难度",
       prop: "difficulty",
       minWidth: 100
     },
@@ -158,148 +158,80 @@ export function useHook() {
     right_option: 0,
     right_options: []
   });
-  // 更改试题类型时，重置选项正确答案
-  watch(
-    () => editForm.type,
-    value => {
-      switch (value) {
-        case QuestionType.ChoiceSingle:
-        case QuestionType.ChoiceMulti:
-          editForm.options = [
-            {
-              id: 0,
-              question_id: 0,
-              tag: "",
-              content: "",
-              is_right: 0,
-              memo: ""
-            },
-            {
-              id: 0,
-              question_id: 0,
-              tag: "",
-              content: "",
-              is_right: 0,
-              memo: ""
-            },
-            {
-              id: 0,
-              question_id: 0,
-              tag: "",
-              content: "",
-              is_right: 0,
-              memo: ""
-            },
-            {
-              id: 0,
-              question_id: 0,
-              tag: "",
-              content: "",
-              is_right: 0,
-              memo: ""
-            }
-          ];
-          break;
-        case QuestionType.Judge:
-          editForm.options = [
-            {
-              id: 0,
-              question_id: 0,
-              tag: "",
-              content: "",
-              is_right: 0,
-              memo: ""
-            },
-            {
-              id: 0,
-              question_id: 0,
-              tag: "",
-              content: "",
-              is_right: 0,
-              memo: ""
-            }
-          ];
-          break;
-        case QuestionType.BlankSingle:
-          break;
-        case QuestionType.BlankMulti:
-          break;
-        case QuestionType.AnswerSingle:
-          break;
-        case QuestionType.AnswerMulti:
-          break;
-        case QuestionType.FileSingle:
-          break;
-        case QuestionType.FileMulti:
-          break;
-      }
-      editForm.right_option = 0;
-      editForm.right_options = [];
+  // 选项缓存
+  type OptionCache = {
+    type: QuestionType;
+    options: Array<QuestionOption>;
+    right_option: number;
+    right_options: Array<number>;
+  };
+
+  const optionsCache = reactive<{
+    choiceSingle: OptionCache;
+    choiceMulti: OptionCache;
+    judge: OptionCache;
+    blankSingle: OptionCache;
+    blankMulti: OptionCache;
+    answerSingle: OptionCache;
+    answerMulti: OptionCache;
+    fileSingle: OptionCache;
+    fileMulti: OptionCache;
+  }>({
+    choiceSingle: {
+      type: QuestionType.ChoiceSingle,
+      options: [],
+      right_option: 0,
+      right_options: []
+    },
+    choiceMulti: {
+      type: QuestionType.ChoiceMulti,
+      options: [],
+      right_option: 0,
+      right_options: []
+    },
+    judge: {
+      type: QuestionType.Judge,
+      options: [],
+      right_option: 0,
+      right_options: []
+    },
+    blankSingle: {
+      type: QuestionType.BlankSingle,
+      options: [],
+      right_option: 0,
+      right_options: []
+    },
+    blankMulti: {
+      type: QuestionType.BlankMulti,
+      options: [],
+      right_option: 0,
+      right_options: []
+    },
+    answerSingle: {
+      type: QuestionType.AnswerSingle,
+      options: [],
+      right_option: 0,
+      right_options: []
+    },
+    answerMulti: {
+      type: QuestionType.AnswerMulti,
+      options: [],
+      right_option: 0,
+      right_options: []
+    },
+    fileSingle: {
+      type: QuestionType.FileSingle,
+      options: [],
+      right_option: 0,
+      right_options: []
+    },
+    fileMulti: {
+      type: QuestionType.FileMulti,
+      options: [],
+      right_option: 0,
+      right_options: []
     }
-  );
-  // 更改试题正确答案
-  watch(
-    [() => editForm.right_option, () => editForm.right_options],
-    ([single, multi]) => {
-      if (single > 0 && single <= editForm.options.length) {
-        editForm.options[single - 1].is_right = QuestionOptionResult.Right;
-      }
-      if (multi.length > 0) {
-        multi.forEach(item => {
-          if (item > 0 && item <= editForm.options.length) {
-            editForm.options[item - 1].is_right = QuestionOptionResult.Right;
-          }
-        });
-      }
-    }
-  );
-  // const editFormRule2 = reactive<FormRules>({
-  //   name: [
-  //     {
-  //       required: true,
-  //       max: 50,
-  //       message: "请输入角色名称",
-  //       trigger: "blur"
-  //     }
-  //   ],
-  //   code: [
-  //     {
-  //       required: true,
-  //       max: 50,
-  //       message: "请输入角色代码",
-  //       trigger: "blur"
-  //     }
-  //   ],
-  //   status: [
-  //     {
-  //       required: true,
-  //       message: "请选择角色状态",
-  //       trigger: "blur"
-  //     }
-  //   ],
-  //   seq: [
-  //     {
-  //       required: true,
-  //       message: "请选择角色排序",
-  //       trigger: "blur"
-  //     },
-  //     {
-  //       type: "integer",
-  //       min: 1,
-  //       max: 999999,
-  //       message: "请输入1~999999之间的正整数",
-  //       trigger: "blur"
-  //     }
-  //   ],
-  //   memo: [
-  //     {
-  //       required: false,
-  //       max: 255,
-  //       message: "请输入备注",
-  //       trigger: "blur"
-  //     }
-  //   ]
-  // });
+  });
   const editFormRule = reactive({
     subject_id: [
       {
@@ -389,6 +321,7 @@ export function useHook() {
   // 弹出编辑对话框
   function showEditDialog(editType: "create" | "edit", row?: Question) {
     editFormType.value = editType;
+    initOptionsCache();
     if (editFormType.value === "edit" && row) {
       editDialogTitle.value = "编辑试题";
       // 查询
@@ -412,9 +345,8 @@ export function useHook() {
             editForm.knowledge_ids = knowledgeIds;
             editForm.score = data.detail.score;
             editForm.memo = data.detail.memo;
-            editForm.options = data.options;
-            editForm.right_option = 0;
-            editForm.right_options = [];
+            // 设置选项
+            setOptions(editForm.type, data.options);
             const rights: number[] = [];
             editForm.options.forEach((item, index) => {
               if (item.is_right === QuestionOptionResult.Right) {
@@ -453,42 +385,8 @@ export function useHook() {
       editForm.knowledge_ids = [];
       editForm.score = 1;
       editForm.memo = "";
-      editForm.options = [
-        {
-          id: 0,
-          question_id: 0,
-          tag: "",
-          content: "",
-          is_right: 0,
-          memo: ""
-        },
-        {
-          id: 0,
-          question_id: 0,
-          tag: "",
-          content: "",
-          is_right: 0,
-          memo: ""
-        },
-        {
-          id: 0,
-          question_id: 0,
-          tag: "",
-          content: "",
-          is_right: 0,
-          memo: ""
-        },
-        {
-          id: 0,
-          question_id: 0,
-          tag: "",
-          content: "",
-          is_right: 0,
-          memo: ""
-        }
-      ];
-      editForm.right_option = 0;
-      editForm.right_options = [];
+      // 设置选项
+      setOptions(editForm.type, []);
     }
     editDialogVisible.value = true;
   }
@@ -501,20 +399,12 @@ export function useHook() {
         return;
       }
 
-      // const options: {
-      //   question_id: number; // int
-      //   tag: string; // string
-      //   content: string; // string
-      //   is_right: number; // int
-      //   memo: string; // string
-      // }[] = [];
-
       if (editForm.id === 0) {
         // 创建
         CreateQuestion({
           question: {
             subject_id: editForm.subject_id,
-            name: editForm.name.substring(0, 100),
+            name: editForm.name.substring(0, 500),
             type: editForm.type,
             content: editForm.content,
             tips: editForm.tips,
@@ -549,7 +439,7 @@ export function useHook() {
         question: {
           id: editForm.id,
           subject_id: editForm.subject_id,
-          name: editForm.name.substring(0, 100),
+          name: editForm.name.substring(0, 500),
           type: editForm.type,
           content: editForm.content,
           tips: editForm.tips,
@@ -623,6 +513,239 @@ export function useHook() {
     }
     ans.reverse();
     return ans.join("");
+  }
+
+  // 初始化选项列表缓存
+  function initOptionsCache() {
+    optionsCache.choiceSingle.options = [
+      {
+        id: 0,
+        question_id: 0,
+        tag: "",
+        content: "",
+        is_right: 0,
+        memo: ""
+      },
+      {
+        id: 0,
+        question_id: 0,
+        tag: "",
+        content: "",
+        is_right: 0,
+        memo: ""
+      },
+      {
+        id: 0,
+        question_id: 0,
+        tag: "",
+        content: "",
+        is_right: 0,
+        memo: ""
+      },
+      {
+        id: 0,
+        question_id: 0,
+        tag: "",
+        content: "",
+        is_right: 0,
+        memo: ""
+      }
+    ];
+    optionsCache.choiceSingle.right_option = 0;
+    optionsCache.choiceSingle.right_options = [];
+
+    optionsCache.choiceMulti.options = [
+      {
+        id: 0,
+        question_id: 0,
+        tag: "",
+        content: "",
+        is_right: 0,
+        memo: ""
+      },
+      {
+        id: 0,
+        question_id: 0,
+        tag: "",
+        content: "",
+        is_right: 0,
+        memo: ""
+      },
+      {
+        id: 0,
+        question_id: 0,
+        tag: "",
+        content: "",
+        is_right: 0,
+        memo: ""
+      },
+      {
+        id: 0,
+        question_id: 0,
+        tag: "",
+        content: "",
+        is_right: 0,
+        memo: ""
+      }
+    ];
+    optionsCache.choiceMulti.right_option = 0;
+    optionsCache.choiceMulti.right_options = [];
+
+    optionsCache.judge.options = [
+      {
+        id: 0,
+        question_id: 0,
+        tag: "",
+        content: "正确",
+        is_right: 0,
+        memo: ""
+      },
+      {
+        id: 0,
+        question_id: 0,
+        tag: "",
+        content: "错误",
+        is_right: 0,
+        memo: ""
+      }
+    ];
+    optionsCache.judge.right_option = 0;
+    optionsCache.judge.right_options = [];
+
+    optionsCache.blankSingle.options = [];
+    optionsCache.blankSingle.right_option = 0;
+    optionsCache.blankSingle.right_options = [];
+
+    optionsCache.blankMulti.options = [];
+    optionsCache.blankMulti.right_option = 0;
+    optionsCache.blankMulti.right_options = [];
+
+    optionsCache.answerSingle.options = [];
+    optionsCache.answerSingle.right_option = 0;
+    optionsCache.answerSingle.right_options = [];
+
+    optionsCache.answerMulti.options = [];
+    optionsCache.answerMulti.right_option = 0;
+    optionsCache.answerMulti.right_options = [];
+
+    optionsCache.fileSingle.options = [];
+    optionsCache.fileSingle.right_option = 0;
+    optionsCache.fileSingle.right_options = [];
+
+    optionsCache.fileMulti.options = [];
+    optionsCache.fileMulti.right_option = 0;
+    optionsCache.fileMulti.right_options = [];
+  }
+
+  // 设置选项列表
+  function setOptions(qt: QuestionType, options: Array<QuestionOption>) {
+    let cache: OptionCache;
+    switch (qt) {
+      case QuestionType.ChoiceSingle:
+        cache = optionsCache.choiceSingle;
+        break;
+      case QuestionType.ChoiceMulti:
+        cache = optionsCache.choiceMulti;
+        break;
+      case QuestionType.Judge:
+        cache = optionsCache.judge;
+        break;
+      case QuestionType.BlankSingle:
+        cache = optionsCache.blankSingle;
+        break;
+      case QuestionType.BlankMulti:
+        cache = optionsCache.blankMulti;
+        break;
+      case QuestionType.AnswerSingle:
+        cache = optionsCache.answerSingle;
+        break;
+      case QuestionType.AnswerMulti:
+        cache = optionsCache.answerMulti;
+        break;
+      case QuestionType.FileSingle:
+        cache = optionsCache.fileSingle;
+        break;
+      case QuestionType.FileMulti:
+        cache = optionsCache.fileMulti;
+        break;
+      default:
+        return;
+    }
+    if (options.length > 0) {
+      cache.options = options;
+    }
+    const rights: number[] = [];
+    cache.options.forEach((item, index) => {
+      if (item.is_right === QuestionOptionResult.Right) {
+        rights.push(index + 1);
+      }
+    });
+    if (rights.length == 0) {
+      cache.right_option = 0;
+      cache.right_options = [];
+    } else {
+      switch (cache.type) {
+        case QuestionType.ChoiceSingle:
+        case QuestionType.Judge:
+          cache.right_option = rights[0];
+          cache.right_options = [];
+          break;
+        case QuestionType.ChoiceMulti:
+          cache.right_option = 0;
+          cache.right_options = rights;
+          break;
+      }
+    }
+
+    editForm.options = cache.options;
+    editForm.right_option = cache.right_option;
+    editForm.right_options = cache.right_options;
+  }
+
+  // 设置正确选项
+  // @param qt 试题类型
+  // @param rights 正确选项索引，取值范围为[ 1, options.length ]
+  function setOptionRight(qt: QuestionType, rights: number[]) {
+    let cache: OptionCache;
+    switch (qt) {
+      case QuestionType.ChoiceSingle:
+        cache = optionsCache.choiceSingle;
+        break;
+      case QuestionType.ChoiceMulti:
+        cache = optionsCache.choiceMulti;
+        break;
+      case QuestionType.Judge:
+        cache = optionsCache.judge;
+        break;
+      case QuestionType.BlankSingle:
+        cache = optionsCache.blankSingle;
+        break;
+      case QuestionType.BlankMulti:
+        cache = optionsCache.blankMulti;
+        break;
+      case QuestionType.AnswerSingle:
+        cache = optionsCache.answerSingle;
+        break;
+      case QuestionType.AnswerMulti:
+        cache = optionsCache.answerMulti;
+        break;
+      case QuestionType.FileSingle:
+        cache = optionsCache.fileSingle;
+        break;
+      case QuestionType.FileMulti:
+        cache = optionsCache.fileMulti;
+        break;
+      default:
+        return;
+    }
+
+    cache.options.forEach((item, index) => {
+      if (!rights.includes(index + 1)) {
+        item.is_right = QuestionOptionResult.Wrong;
+      } else {
+        item.is_right = QuestionOptionResult.Right;
+      }
+    });
   }
 
   // 添加选项
@@ -702,10 +825,19 @@ export function useHook() {
     queryKnowledgeList();
   });
 
+  // 更改试题类型时，重新获取选项
   watch(
     () => editForm.type,
-    type => {
-      console.log(`type is: ${type}`);
+    value => {
+      setOptions(value, []);
+    }
+  );
+
+  // 更改试题正确答案
+  watch(
+    [() => editForm.right_option, () => editForm.right_options],
+    ([single, multi]) => {
+      setOptionRight(editForm.type, [single, ...multi]);
     }
   );
 

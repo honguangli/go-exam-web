@@ -12,6 +12,7 @@ import { UpdatePaper } from "@/api/exam/modules/paper/update";
 import { DeletePaper } from "@/api/exam/modules/paper/delete";
 import { FormInstance, FormRules } from "element-plus";
 import { QuestionType } from "@/api/exam/models/question";
+import { QuestionOption } from "@/api/exam/models/question_option";
 
 export function useHook() {
   // 筛选表单
@@ -55,7 +56,7 @@ export function useHook() {
       minWidth: 200
     },
     {
-      label: "难度系数",
+      label: "难度",
       prop: "difficulty",
       minWidth: 150
     },
@@ -341,30 +342,17 @@ export function useHook() {
     type: QuestionType; // 试题类型
     title: string; // 标题
     score: number; // 试题分值
-    list: Array<Question>; // 试题列表
+    list: Array<QuestionCache>; // 试题列表
   };
 
   // 试题
-  type Question = {
-    id?: number;
-    name?: string;
+  type QuestionCache = {
+    id: number;
     type: number;
     content: string;
-    score: number;
-    status: number;
-    sort?: number;
-    answer: string;
-    answer_multi: Array<string>;
-    options?: Array<QuestionOption>;
+    options: Array<QuestionOption>;
   };
 
-  // 试题
-  type QuestionOption = {
-    id?: number;
-    question_id?: number;
-    tag: string;
-    content: string;
-  };
   const questionBlock: Ref<Array<QuestionBlock>> = ref([
     {
       type: QuestionType.ChoiceSingle,
@@ -409,418 +397,654 @@ export function useHook() {
       list: []
     }
   ]);
-  const questionList: Ref<Array<Question>> = ref([]);
+  const questionList: Ref<Array<QuestionCache>> = ref([]);
+
+  // 获取试题题号
+  function getQuestionSort(blockIndex: number, index: number) {
+    let sort = 1;
+    for (let i = 0; i < blockIndex; i++) {
+      sort += questionBlock.value[i].list.length;
+    }
+    return sort + index;
+  }
+
+  function transformOptionTag(index: number) {
+    const ans = [];
+    while (index > 0) {
+      const a0 = ((index - 1) % 26) + 1;
+      ans.push(String.fromCharCode(a0 - 1 + "A".charCodeAt(0)));
+      index = Math.floor((index - a0) / 26);
+    }
+    ans.reverse();
+    return ans.join("");
+  }
+
+  // 获取单选题正确答案
+  function getChoiceSingleRight(options: QuestionOption[]) {
+    return options.findIndex(item => item.is_right) + 1;
+  }
+
+  // 获取多选题正确答案
+  function getChoiceMultiRight(options: QuestionOption[]) {
+    const list: number[] = [];
+
+    options.forEach((item, index) => {
+      if (item.is_right) {
+        list.push(index + 1);
+      }
+    });
+
+    return list;
+  }
+
+  // 获取判断题正确答案
+  function getJudgeRight(options: QuestionOption[]) {
+    return options.findIndex(item => item.is_right) + 1;
+  }
+
+  // 上移试题
+  function sortUpQuestion(list: QuestionCache[], index: number) {
+    if (index <= 0 || index > list.length - 1) {
+      return;
+    }
+    swapQuestion(list, index - 1, index);
+  }
+
+  // 下移试题
+  function sortDownQuestion(list: QuestionCache[], index: number) {
+    if (index < 0 || index >= list.length - 1) {
+      return;
+    }
+    swapQuestion(list, index, index + 1);
+  }
+
+  // 交换试题位置
+  function swapQuestion(list: QuestionCache[], a: number, b: number) {
+    if (a < 0 || a >= list.length) {
+      return;
+    }
+    if (b < 0 || b >= list.length) {
+      return;
+    }
+    const temp = list[a];
+    list[a] = list[b];
+    list[b] = temp;
+  }
+
+  // 删除试题
+  function deleteQuestion(list: QuestionCache[], index: number) {
+    if (index < 0 || index >= list.length) {
+      return;
+    }
+    list.splice(index, 1);
+    // TODO 添加占位试题
+    list.push({
+      id: 0,
+      type: QuestionType.ChoiceSingle,
+      content: "",
+      options: []
+    });
+  }
+
   function setData() {
     questionList.value.push(
       {
+        id: 0,
         type: QuestionType.ChoiceSingle,
         content: "路由发生在TCP/IP模型的",
-        score: 2,
-        status: 0,
-        answer: "",
-        answer_multi: [],
         options: [
           {
+            id: 0,
+            question_id: 0,
             tag: "A",
-            content: "应用层"
+            content: "应用层",
+            is_right: 0,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "B",
-            content: "网络层"
+            content: "网络层",
+            is_right: 1,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "C",
-            content: "传输层"
+            content: "传输层",
+            is_right: 0,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "D",
-            content: "物理层"
+            content: "物理层",
+            is_right: 0,
+            memo: ""
           }
         ]
       },
       {
+        id: 0,
         type: QuestionType.ChoiceSingle,
         content: "二层交换机根据（   ）信息决定如何转发数据帧",
-        score: 2,
-        status: 0,
-        answer: "",
-        answer_multi: [],
         options: [
           {
+            id: 0,
+            question_id: 0,
             tag: "A",
-            content: "源MAC地址"
+            content: "源MAC地址",
+            is_right: 1,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "B",
-            content: "源IP地址"
+            content: "源IP地址",
+            is_right: 0,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "C",
-            content: "目的端口地址"
+            content: "目的端口地址",
+            is_right: 0,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "D",
-            content: "目的MAC地址"
+            content: "目的MAC地址",
+            is_right: 0,
+            memo: ""
           }
         ]
       },
       {
+        id: 0,
         type: QuestionType.ChoiceSingle,
         content: "以太网使用物理地址的原因是（   ）",
-        score: 2,
-        status: 0,
-        answer: "",
-        answer_multi: [],
         options: [
           {
+            id: 0,
+            question_id: 0,
             tag: "A",
-            content: "在二层唯一确定一台设备"
+            content: "在二层唯一确定一台设备",
+            is_right: 0,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "B",
-            content: "允许设备在不同网络中通信"
+            content: "允许设备在不同网络中通信",
+            is_right: 1,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "C",
-            content: "区分二层和三层数据包"
+            content: "区分二层和三层数据包",
+            is_right: 0,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "D",
-            content: "允许应用程序在不同网络中通信"
+            content: "允许应用程序在不同网络中通信",
+            is_right: 0,
+            memo: ""
           }
         ]
       },
       {
+        id: 0,
         type: QuestionType.ChoiceSingle,
         content: "OSPF协议使用的算法是",
-        score: 2,
-        status: 0,
-        answer: "",
-        answer_multi: [],
         options: [
           {
+            id: 0,
+            question_id: 0,
             tag: "A",
-            content: "最短路径优先( Shortest Path First, SPF) 算法"
+            content: "最短路径优先( Shortest Path First, SPF) 算法",
+            is_right: 1,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "B",
-            content: "Bellman- Ford算法"
+            content: "Bellman- Ford算法",
+            is_right: 0,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "C",
-            content: "路径向量(Path-Vector) 算法"
+            content: "路径向量(Path-Vector) 算法",
+            is_right: 0,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "D",
-            content: "最小生成树算法"
+            content: "最小生成树算法",
+            is_right: 0,
+            memo: ""
           }
         ]
       },
       {
+        id: 0,
         type: QuestionType.ChoiceSingle,
         content: "以下（   ）协议不属于应用层",
-        score: 2,
-        status: 0,
-        answer: "",
-        answer_multi: [],
         options: [
           {
+            id: 0,
+            question_id: 0,
             tag: "A",
-            content: "Telnet"
+            content: "Telnet",
+            is_right: 0,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "B",
-            content: "TCP"
+            content: "TCP",
+            is_right: 0,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "C",
-            content: "DNS"
+            content: "DNS",
+            is_right: 1,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "D",
-            content: "HTTP"
+            content: "HTTP",
+            is_right: 0,
+            memo: ""
           }
         ]
       },
       {
+        id: 0,
         type: QuestionType.ChoiceSingle,
         content: "以下（   ）标准是无线局域网标准",
-        score: 2,
-        status: 0,
-        answer: "",
-        answer_multi: [],
         options: [
           {
+            id: 0,
+            question_id: 0,
             tag: "A",
-            content: "IEEE 802. 1"
+            content: "IEEE 802. 1",
+            is_right: 1,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "B",
-            content: "IEEE 802. 3"
+            content: "IEEE 802. 3",
+            is_right: 0,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "C",
-            content: "IEFE 802. 11"
+            content: "IEFE 802. 11",
+            is_right: 0,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "D",
-            content: "IEEE 802. 15"
+            content: "IEEE 802. 15",
+            is_right: 0,
+            memo: ""
           }
         ]
       },
       // 多项题
       {
+        id: 0,
         type: QuestionType.ChoiceMulti,
         content: "在路由器上可以出现的端口是",
-        score: 6,
-        status: 0,
-        answer: "",
-        answer_multi: [],
         options: [
           {
+            id: 0,
+            question_id: 0,
             tag: "A",
-            content: "Console端口"
+            content: "Console端口",
+            is_right: 0,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "B",
-            content: "AUX端口"
+            content: "AUX端口",
+            is_right: 0,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "C",
-            content: "PCI端口"
+            content: "PCI端口",
+            is_right: 1,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "D",
-            content: "RJ45端口"
+            content: "RJ45端口",
+            is_right: 1,
+            memo: ""
           }
         ]
       },
       {
+        id: 0,
         type: QuestionType.ChoiceMulti,
         content: "下列属于私有地址的是",
-        score: 6,
-        status: 0,
-        answer: "",
-        answer_multi: [],
         options: [
           {
+            id: 0,
+            question_id: 0,
             tag: "A",
-            content: "10.16.26.100"
+            content: "10.16.26.100",
+            is_right: 0,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "B",
-            content: "172.16.20.10"
+            content: "172.16.20.10",
+            is_right: 1,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "C",
-            content: "192.168.1.1"
+            content: "192.168.1.1",
+            is_right: 1,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "D",
-            content: "172.31.1.1"
+            content: "172.31.1.1",
+            is_right: 1,
+            memo: ""
           }
         ]
       },
       {
+        id: 0,
         type: QuestionType.ChoiceMulti,
         content: "Internet中包含的网络类型包括",
-        score: 6,
-        status: 0,
-        answer: "",
-        answer_multi: [],
         options: [
           {
+            id: 0,
+            question_id: 0,
             tag: "A",
-            content: "局域网"
+            content: "局域网",
+            is_right: 1,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "B",
-            content: "城域网"
+            content: "城域网",
+            is_right: 1,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "C",
-            content: "广域网"
+            content: "广域网",
+            is_right: 1,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "D",
-            content: "无线网络"
+            content: "无线网络",
+            is_right: 1,
+            memo: ""
           }
         ]
       },
       {
+        id: 0,
         type: QuestionType.ChoiceMulti,
         content: "要组建一个快速以太网，需要的基本硬件设备与材料包括",
-        score: 6,
-        status: 0,
-        answer: "",
-        answer_multi: [],
         options: [
           {
+            id: 0,
+            question_id: 0,
             tag: "A",
-            content: "100BASE-T交换机"
+            content: "100BASE-T交换机",
+            is_right: 1,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "B",
-            content: "100BASE-T网卡"
+            content: "100BASE-T网卡",
+            is_right: 1,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "C",
-            content: "路由器"
+            content: "路由器",
+            is_right: 1,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "D",
-            content: "双绞线或光缆"
+            content: "双绞线或光缆",
+            is_right: 0,
+            memo: ""
           }
         ]
       },
       // 判断题
       {
+        id: 0,
         type: QuestionType.Judge,
         content: "交换机的自学习功能是通过帧的源MAC地址实现的",
-        score: 2,
-        status: 0,
-        answer: "",
-        answer_multi: [],
         options: [
           {
+            id: 0,
+            question_id: 0,
             tag: "A",
-            content: "正确"
+            content: "正确",
+            is_right: 1,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "B",
-            content: "错误"
+            content: "错误",
+            is_right: 0,
+            memo: ""
           }
         ]
       },
       {
+        id: 0,
         type: QuestionType.Judge,
         content: "奇偶校验码是一种纠错码",
-        score: 2,
-        status: 0,
-        answer: "",
-        answer_multi: [],
         options: [
           {
+            id: 0,
+            question_id: 0,
             tag: "A",
-            content: "正确"
+            content: "正确",
+            is_right: 1,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "B",
-            content: "错误"
+            content: "错误",
+            is_right: 0,
+            memo: ""
           }
         ]
       },
       {
+        id: 0,
         type: QuestionType.Judge,
         content: "静态路由就是每次选择的路由都一样",
-        score: 2,
-        status: 0,
-        answer: "",
-        answer_multi: [],
         options: [
           {
+            id: 0,
+            question_id: 0,
             tag: "A",
-            content: "正确"
+            content: "正确",
+            is_right: 0,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "B",
-            content: "错误"
+            content: "错误",
+            is_right: 1,
+            memo: ""
           }
         ]
       },
       {
+        id: 0,
         type: QuestionType.Judge,
         content: "根域名服务器一般采用迭代查询方式进行域名解释",
-        score: 2,
-        status: 0,
-        answer: "",
-        answer_multi: [],
         options: [
           {
+            id: 0,
+            question_id: 0,
             tag: "A",
-            content: "正确"
+            content: "正确",
+            is_right: 1,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "B",
-            content: "错误"
+            content: "错误",
+            is_right: 0,
+            memo: ""
           }
         ]
       },
       {
+        id: 0,
         type: QuestionType.Judge,
         content: "在端口VLAN中，主机接收VLAN号相同的帧，把VLAN号不同的帧丢弃",
-        score: 2,
-        status: 0,
-        answer: "",
-        answer_multi: [],
         options: [
           {
+            id: 0,
+            question_id: 0,
             tag: "A",
-            content: "正确"
+            content: "正确",
+            is_right: 0,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "B",
-            content: "错误"
+            content: "错误",
+            is_right: 1,
+            memo: ""
           }
         ]
       },
       {
+        id: 0,
         type: QuestionType.Judge,
         content:
           "某主机通过DHCP获得IP地址，当该主机关机时，必须发送向DHCP服务器发送通知，让服务器回收该IP地址",
-        score: 2,
-        status: 0,
-        answer: "",
-        answer_multi: [],
         options: [
           {
+            id: 0,
+            question_id: 0,
             tag: "A",
-            content: "正确"
+            content: "正确",
+            is_right: 1,
+            memo: ""
           },
           {
+            id: 0,
+            question_id: 0,
             tag: "B",
-            content: "错误"
+            content: "错误",
+            is_right: 0,
+            memo: ""
           }
         ]
       },
       // 简答题
       {
+        id: 0,
         type: QuestionType.AnswerSingle,
         content:
           "什么是网络自治？在Internet中，有哪些网络自治技术？请列举出至少2个，并做简要说明",
-        score: 2,
-        status: 0,
-        answer: "",
-        answer_multi: [],
         options: []
       },
       {
+        id: 0,
         type: QuestionType.AnswerSingle,
         content: "缓解IPV4的地址紧缺，有什么方法？列举出至少3个，并做简要说明",
-        score: 2,
-        status: 0,
-        answer: "",
-        answer_multi: [],
         options: []
       },
       {
+        id: 0,
         type: QuestionType.AnswerSingle,
         content:
           "在某通讯环境中，接收端收到的信息为110111，CRC校验码为1011，生成多项式为G(x)=x4+x3+1。（1）分析收到的信息是否有错？为什么？（2）计算其编码效率。为了提高编码效率，能否无限制增加一次发送的信息？为什么？（3）网络通讯中，除了校验方法，提高可靠性还有什么技术？",
-        score: 2,
-        status: 0,
-        answer: "",
-        answer_multi: [],
         options: []
       },
       {
+        id: 0,
         type: QuestionType.AnswerSingle,
         content:
           "直接交付和间接交付各用在什么场合？指出各种场合产生的帧中，MAC地址和IP地址的对应情况",
-        score: 2,
-        status: 0,
-        answer: "",
-        answer_multi: [],
         options: []
       }
     );
@@ -828,7 +1052,7 @@ export function useHook() {
       return a.type - b.type;
     });
     questionList.value.forEach((item, index) => {
-      item.sort = index + 1;
+      item.id = index + 1;
       switch (item.type) {
         case QuestionType.ChoiceSingle:
           questionBlock.value[0].list.push(item);
@@ -929,6 +1153,14 @@ export function useHook() {
     handleSizeChange,
     handleCurrentChange,
     handleSelectionChange,
-    questionBlock
+    questionBlock,
+    getQuestionSort,
+    transformOptionTag,
+    getChoiceSingleRight,
+    getChoiceMultiRight,
+    getJudgeRight,
+    sortUpQuestion,
+    sortDownQuestion,
+    deleteQuestion
   };
 }

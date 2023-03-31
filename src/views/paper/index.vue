@@ -40,7 +40,15 @@ const {
   handleSizeChange,
   handleCurrentChange,
   handleSelectionChange,
-  questionBlock
+  questionBlock,
+  getQuestionSort,
+  transformOptionTag,
+  getChoiceSingleRight,
+  getChoiceMultiRight,
+  getJudgeRight,
+  sortUpQuestion,
+  sortDownQuestion,
+  deleteQuestion
 } = useHook();
 </script>
 
@@ -258,7 +266,7 @@ const {
             <el-input-number
               v-model="editForm.difficulty"
               :precision="2"
-              :step="0.1"
+              :step="0.05"
               :min="0.01"
               :max="1"
             />
@@ -306,32 +314,61 @@ const {
             >
               <el-form-item
                 prop="name"
-                :label="question.sort + '. ' + question.content"
+                :label="
+                  getQuestionSort(0, questionIndex) + '. ' + question.content
+                "
               >
-                <el-radio-group v-model="question.answer" class="clear-both">
+                <el-radio-group
+                  :model-value="getChoiceSingleRight(question.options)"
+                  readonly
+                  class="clear-both"
+                >
                   <el-space direction="vertical" alignment="start">
                     <el-radio
                       v-for="(option, optionIndex) in question.options"
                       :key="optionIndex"
-                      :label="option.tag"
-                      >{{ option.content }}</el-radio
+                      :label="optionIndex + 1"
+                      >{{
+                        transformOptionTag(optionIndex + 1) +
+                        ". " +
+                        option.content
+                      }}</el-radio
                     >
                   </el-space>
                 </el-radio-group>
               </el-form-item>
               <el-button-group>
-                <el-button type="primary" :icon="useRenderIcon(ArrowUp)"
+                <el-button
+                  type="primary"
+                  :icon="useRenderIcon(ArrowUp)"
+                  :disabled="questionIndex === 0"
+                  @click="sortUpQuestion(questionBlock[0].list, questionIndex)"
                   >上移</el-button
                 >
-                <el-button type="primary" :icon="useRenderIcon(ArrowDown)"
+                <el-button
+                  type="primary"
+                  :icon="useRenderIcon(ArrowDown)"
+                  :disabled="questionIndex === questionBlock[0].list.length - 1"
+                  @click="
+                    sortDownQuestion(questionBlock[0].list, questionIndex)
+                  "
                   >下移</el-button
                 >
                 <el-button type="primary" :icon="useRenderIcon(EditPen)"
                   >替换</el-button
                 >
-                <el-button type="danger" :icon="useRenderIcon(Delete)"
-                  >删除</el-button
+                <el-popconfirm
+                  title="是否确认删除?"
+                  @confirm="
+                    deleteQuestion(questionBlock[0].list, questionIndex)
+                  "
                 >
+                  <template #reference>
+                    <el-button type="danger" :icon="useRenderIcon(Delete)"
+                      >删除</el-button
+                    >
+                  </template>
+                </el-popconfirm>
               </el-button-group>
               <el-divider />
             </template>
@@ -365,32 +402,60 @@ const {
             >
               <el-form-item
                 prop="name"
-                :label="question.sort + '. ' + question.content"
+                :label="
+                  getQuestionSort(1, questionIndex) + '. ' + question.content
+                "
               >
-                <el-checkbox-group v-model="question.answer_multi">
+                <el-checkbox-group
+                  :model-value="getChoiceMultiRight(question.options)"
+                  readonly
+                >
                   <el-space direction="vertical" alignment="start">
                     <el-checkbox
                       v-for="(option, optionIndex) in question.options"
                       :key="optionIndex"
-                      :label="option.tag"
-                      >{{ option.content }}</el-checkbox
+                      :label="optionIndex + 1"
+                      >{{
+                        transformOptionTag(optionIndex + 1) +
+                        ". " +
+                        option.content
+                      }}</el-checkbox
                     >
                   </el-space>
                 </el-checkbox-group>
               </el-form-item>
               <el-button-group>
-                <el-button type="primary" :icon="useRenderIcon(ArrowUp)"
+                <el-button
+                  type="primary"
+                  :icon="useRenderIcon(ArrowUp)"
+                  :disabled="questionIndex === 0"
+                  @click="sortUpQuestion(questionBlock[1].list, questionIndex)"
                   >上移</el-button
                 >
-                <el-button type="primary" :icon="useRenderIcon(ArrowDown)"
+                <el-button
+                  type="primary"
+                  :icon="useRenderIcon(ArrowDown)"
+                  :disabled="questionIndex === questionBlock[1].list.length - 1"
+                  @click="
+                    sortDownQuestion(questionBlock[1].list, questionIndex)
+                  "
                   >下移</el-button
                 >
                 <el-button type="primary" :icon="useRenderIcon(EditPen)"
                   >替换</el-button
                 >
-                <el-button type="danger" :icon="useRenderIcon(Delete)"
-                  >删除</el-button
+                <el-popconfirm
+                  title="是否确认删除?"
+                  @confirm="
+                    deleteQuestion(questionBlock[1].list, questionIndex)
+                  "
                 >
+                  <template #reference>
+                    <el-button type="danger" :icon="useRenderIcon(Delete)"
+                      >删除</el-button
+                    >
+                  </template>
+                </el-popconfirm>
               </el-button-group>
               <el-divider />
             </template>
@@ -424,32 +489,60 @@ const {
             >
               <el-form-item
                 prop="name"
-                :label="question.sort + '. ' + question.content"
+                :label="
+                  getQuestionSort(2, questionIndex) + '. ' + question.content
+                "
               >
-                <el-radio-group v-model="question.answer">
+                <el-radio-group
+                  :model-value="getJudgeRight(question.options)"
+                  readonly
+                >
                   <el-space direction="vertical" alignment="start">
                     <el-radio
                       v-for="(option, optionIndex) in question.options"
                       :key="optionIndex"
-                      :label="option.tag"
-                      >{{ option.content }}</el-radio
+                      :label="optionIndex + 1"
+                      >{{
+                        transformOptionTag(optionIndex + 1) +
+                        ". " +
+                        option.content
+                      }}</el-radio
                     >
                   </el-space>
                 </el-radio-group>
               </el-form-item>
               <el-button-group>
-                <el-button type="primary" :icon="useRenderIcon(ArrowUp)"
+                <el-button
+                  type="primary"
+                  :icon="useRenderIcon(ArrowUp)"
+                  :disabled="questionIndex === 0"
+                  @click="sortUpQuestion(questionBlock[2].list, questionIndex)"
                   >上移</el-button
                 >
-                <el-button type="primary" :icon="useRenderIcon(ArrowDown)"
+                <el-button
+                  type="primary"
+                  :icon="useRenderIcon(ArrowDown)"
+                  :disabled="questionIndex === questionBlock[2].list.length - 1"
+                  @click="
+                    sortDownQuestion(questionBlock[2].list, questionIndex)
+                  "
                   >下移</el-button
                 >
                 <el-button type="primary" :icon="useRenderIcon(EditPen)"
                   >替换</el-button
                 >
-                <el-button type="danger" :icon="useRenderIcon(Delete)"
-                  >删除</el-button
+                <el-popconfirm
+                  title="是否确认删除?"
+                  @confirm="
+                    deleteQuestion(questionBlock[2].list, questionIndex)
+                  "
                 >
+                  <template #reference>
+                    <el-button type="danger" :icon="useRenderIcon(Delete)"
+                      >删除</el-button
+                    >
+                  </template>
+                </el-popconfirm>
               </el-button-group>
               <el-divider />
             </template>
@@ -483,32 +576,42 @@ const {
             >
               <el-form-item
                 prop="name"
-                :label="question.sort + '. ' + question.content"
-              >
-                <el-radio-group v-model="question.answer" class="clear-both">
-                  <el-space direction="vertical" alignment="start">
-                    <el-radio
-                      v-for="(option, optionIndex) in question.options"
-                      :key="optionIndex"
-                      :label="option.tag"
-                      >{{ option.content }}</el-radio
-                    >
-                  </el-space>
-                </el-radio-group>
-              </el-form-item>
+                :label="
+                  getQuestionSort(3, questionIndex) + '. ' + question.content
+                "
+              />
               <el-button-group>
-                <el-button type="primary" :icon="useRenderIcon(ArrowUp)"
+                <el-button
+                  type="primary"
+                  :icon="useRenderIcon(ArrowUp)"
+                  :disabled="questionIndex === 0"
+                  @click="sortUpQuestion(questionBlock[3].list, questionIndex)"
                   >上移</el-button
                 >
-                <el-button type="primary" :icon="useRenderIcon(ArrowDown)"
+                <el-button
+                  type="primary"
+                  :icon="useRenderIcon(ArrowDown)"
+                  :disabled="questionIndex === questionBlock[3].list.length - 1"
+                  @click="
+                    sortDownQuestion(questionBlock[3].list, questionIndex)
+                  "
                   >下移</el-button
                 >
                 <el-button type="primary" :icon="useRenderIcon(EditPen)"
                   >替换</el-button
                 >
-                <el-button type="danger" :icon="useRenderIcon(Delete)"
-                  >删除</el-button
+                <el-popconfirm
+                  title="是否确认删除?"
+                  @confirm="
+                    deleteQuestion(questionBlock[3].list, questionIndex)
+                  "
                 >
+                  <template #reference>
+                    <el-button type="danger" :icon="useRenderIcon(Delete)"
+                      >删除</el-button
+                    >
+                  </template>
+                </el-popconfirm>
               </el-button-group>
               <el-divider />
             </template>
@@ -542,31 +645,51 @@ const {
             >
               <el-form-item
                 prop="name"
-                :label="question.sort + '. ' + question.content"
+                :label="
+                  getQuestionSort(5, questionIndex) + '. ' + question.content
+                "
               >
                 <el-input
-                  v-model="question.answer"
                   type="textarea"
                   minlength="1"
                   maxlength="5000"
                   show-word-limit
                   placeholder=""
+                  disabled
                   :autosize="{ minRows: 6, maxRows: 12 }"
                 />
               </el-form-item>
               <el-button-group>
-                <el-button type="primary" :icon="useRenderIcon(ArrowUp)"
+                <el-button
+                  type="primary"
+                  :icon="useRenderIcon(ArrowUp)"
+                  @click="sortUpQuestion(questionBlock[5].list, questionIndex)"
                   >上移</el-button
                 >
-                <el-button type="primary" :icon="useRenderIcon(ArrowDown)"
+                <el-button
+                  type="primary"
+                  :icon="useRenderIcon(ArrowDown)"
+                  :disabled="questionIndex === questionBlock[5].list.length - 1"
+                  @click="
+                    sortDownQuestion(questionBlock[5].list, questionIndex)
+                  "
                   >下移</el-button
                 >
                 <el-button type="primary" :icon="useRenderIcon(EditPen)"
                   >替换</el-button
                 >
-                <el-button type="danger" :icon="useRenderIcon(Delete)"
-                  >删除</el-button
+                <el-popconfirm
+                  title="是否确认删除?"
+                  @confirm="
+                    deleteQuestion(questionBlock[5].list, questionIndex)
+                  "
                 >
+                  <template #reference>
+                    <el-button type="danger" :icon="useRenderIcon(Delete)"
+                      >删除</el-button
+                    >
+                  </template>
+                </el-popconfirm>
               </el-button-group>
               <el-divider />
             </template>
@@ -633,7 +756,7 @@ const {
             <el-input-number
               v-model="aiForm.difficulty"
               :precision="2"
-              :step="0.1"
+              :step="0.05"
               :min="0.01"
               :max="1"
             />

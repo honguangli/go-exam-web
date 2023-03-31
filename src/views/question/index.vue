@@ -235,7 +235,7 @@ const {
             <el-input-number
               v-model="editForm.difficulty"
               :precision="2"
-              :step="0.1"
+              :step="0.05"
               :min="0.01"
               :max="1"
             />
@@ -250,8 +250,8 @@ const {
               v-model:text="editForm.name"
             />
           </el-form-item>
-          <el-divider />
           <template v-if="editForm.type === QuestionType.ChoiceSingle">
+            <el-divider />
             <div><el-tag size="large">选项列表</el-tag></div>
             <el-form-item
               prop="right_option"
@@ -289,20 +289,34 @@ const {
                     <el-col :span="8">
                       <el-space wrap>
                         <el-radio :label="index + 1" border>正确答案</el-radio>
-                        <el-button
-                          type="primary"
-                          :icon="useRenderIcon(AddFill)"
-                          :disabled="editForm.options.length >= 7"
-                          circle
-                          @click="addOption(index)"
-                        />
-                        <el-button
-                          type="danger"
-                          :icon="useRenderIcon(Delete)"
-                          :disabled="editForm.options.length <= 2"
-                          circle
-                          @click="deleteOption(index)"
-                        />
+                        <el-tooltip
+                          class="box-item"
+                          effect="dark"
+                          content="插入选项"
+                          placement="top-start"
+                        >
+                          <el-button
+                            type="primary"
+                            :icon="useRenderIcon(AddFill)"
+                            :disabled="editForm.options.length >= 7"
+                            circle
+                            @click="addOption(index)"
+                          />
+                        </el-tooltip>
+                        <el-tooltip
+                          class="box-item"
+                          effect="dark"
+                          content="删除选项"
+                          placement="top-start"
+                        >
+                          <el-button
+                            type="danger"
+                            :icon="useRenderIcon(Delete)"
+                            :disabled="editForm.options.length <= 2"
+                            circle
+                            @click="deleteOption(index)"
+                          />
+                        </el-tooltip>
                       </el-space>
                     </el-col>
                   </el-row>
@@ -311,6 +325,7 @@ const {
             </el-form-item>
           </template>
           <template v-else-if="editForm.type === QuestionType.ChoiceMulti">
+            <el-divider />
             <div><el-tag size="large">选项列表</el-tag></div>
             <el-form-item
               prop="right_options"
@@ -372,6 +387,7 @@ const {
             </el-form-item>
           </template>
           <template v-else-if="editForm.type === QuestionType.Judge">
+            <el-divider />
             <div><el-tag size="large">选项列表</el-tag></div>
             <el-form-item
               prop="right_option"
