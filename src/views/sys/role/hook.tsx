@@ -43,7 +43,7 @@ export function useQuestion() {
     status: ""
   });
   // 表格数据
-  const dataList = ref([]);
+  const dataList = ref<Role[]>([]);
   // 表格加载状态
   const loading = ref(true);
   // 表格分页
@@ -59,13 +59,15 @@ export function useQuestion() {
       type: "selection",
       width: 55,
       align: "left",
-      hide: ({ checkList }) => !checkList.includes("勾选列")
+      hide: ({ checkList }: { checkList: string[] }) =>
+        !checkList.includes("勾选列")
     },
     {
       label: "序号",
       type: "index",
       width: 70,
-      hide: ({ checkList }) => !checkList.includes("序号列")
+      hide: ({ checkList }: { checkList: string[] }) =>
+        !checkList.includes("序号列")
     },
     {
       label: "ID",
@@ -126,13 +128,15 @@ export function useQuestion() {
       type: "selection",
       width: 55,
       align: "left",
-      hide: ({ checkList }) => !checkList.includes("勾选列")
+      hide: ({ checkList }: { checkList: string[] }) =>
+        !checkList.includes("勾选列")
     },
     {
       label: "序号",
       type: "index",
       width: 70,
-      hide: ({ checkList }) => !checkList.includes("序号列")
+      hide: ({ checkList }: { checkList: string[] }) =>
+        !checkList.includes("序号列")
     },
     {
       label: "权限名称",
@@ -301,7 +305,7 @@ export function useQuestion() {
 
   // 创建/更新信息
   function submitEditForm() {
-    editFormRef.value.validate((valid, fields) => {
+    editFormRef.value?.validate((valid, fields) => {
       if (!valid) {
         console.log("error submit!", fields);
         return;
@@ -392,7 +396,7 @@ export function useQuestion() {
     onSearch();
   }
 
-  function handleSelectionChange(val) {
+  function handleSelectionChange(val: Role[]) {
     console.log("handleSelectionChange", val);
   }
 
@@ -415,7 +419,7 @@ export function useQuestion() {
     });
   }
 
-  const resetForm = formEl => {
+  const resetForm = (formEl: FormInstance | undefined) => {
     if (!formEl) return;
     formEl.resetFields();
     onSearch();
@@ -457,7 +461,7 @@ export function useQuestion() {
     const list = permissionTableRef.value
       ?.getTableRef()
       .getSelectionRows()
-      .map(item => {
+      .map((item: Permission) => {
         return item.id;
       });
 

@@ -37,13 +37,15 @@ export function useHook() {
       type: "selection",
       width: 55,
       align: "left",
-      hide: ({ checkList }) => !checkList.includes("勾选列")
+      hide: ({ checkList }: { checkList: string[] }) =>
+        !checkList.includes("勾选列")
     },
     {
       label: "序号",
       type: "index",
       width: 70,
-      hide: ({ checkList }) => !checkList.includes("序号列")
+      hide: ({ checkList }: { checkList: string[] }) =>
+        !checkList.includes("序号列")
     },
     {
       label: "ID",
@@ -212,7 +214,7 @@ export function useHook() {
   }
 
   function submitEditForm() {
-    editFormRef.value.validate((valid, fields) => {
+    editFormRef.value?.validate((valid, fields) => {
       if (!valid) {
         console.log("error submit!", fields);
         return;
@@ -302,7 +304,7 @@ export function useHook() {
     onSearch();
   }
 
-  function handleSelectionChange(val) {
+  function handleSelectionChange(val: Paper[]) {
     console.log("handleSelectionChange", val);
   }
 
@@ -322,14 +324,14 @@ export function useHook() {
     });
   }
 
-  const resetForm = formEl => {
+  const resetForm = (formEl: FormInstance | undefined) => {
     if (!formEl) return;
     formEl.resetFields();
     onSearch();
   };
 
   function submitAiEditForm() {
-    aiFormRef.value.validate((valid, fields) => {
+    aiFormRef.value?.validate((valid, fields) => {
       if (!valid) {
         console.log("error submit!", fields);
         return;
@@ -345,7 +347,7 @@ export function useHook() {
     list: Array<QuestionCache>; // 试题列表
   };
 
-  // 试题
+  // 试题缓存
   type QuestionCache = {
     id: number;
     type: number;
@@ -439,7 +441,7 @@ export function useHook() {
 
   // 获取判断题正确答案
   function getJudgeRight(options: QuestionOption[]) {
-    return options.findIndex(item => item.is_right) + 1;
+    return getChoiceSingleRight(options);
   }
 
   // 上移试题

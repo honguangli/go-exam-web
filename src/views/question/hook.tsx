@@ -60,13 +60,15 @@ export function useHook() {
       type: "selection",
       width: 55,
       align: "left",
-      hide: ({ checkList }) => !checkList.includes("勾选列")
+      hide: ({ checkList }: { checkList: string[] }) =>
+        !checkList.includes("勾选列")
     },
     {
       label: "序号",
       type: "index",
       width: 70,
-      hide: ({ checkList }) => !checkList.includes("序号列")
+      hide: ({ checkList }: { checkList: string[] }) =>
+        !checkList.includes("序号列")
     },
     {
       label: "ID",
@@ -393,7 +395,7 @@ export function useHook() {
 
   // 创建/更新信息
   function submitEditForm() {
-    editFormRef.value.validate((valid, fields) => {
+    editFormRef.value?.validate((valid, fields) => {
       if (!valid) {
         console.log("error submit!", fields);
         return;
@@ -500,7 +502,7 @@ export function useHook() {
     onSearch();
   }
 
-  function handleSelectionChange(val) {
+  function handleSelectionChange(val: Question[]) {
     console.log("handleSelectionChange", val);
   }
 
@@ -813,7 +815,7 @@ export function useHook() {
     });
   }
 
-  const resetForm = formEl => {
+  const resetForm = (formEl: FormInstance | undefined) => {
     if (!formEl) return;
     formEl.resetFields();
     onSearch();

@@ -58,14 +58,14 @@ export function useHook() {
       type: "selection",
       width: 55,
       align: "left",
-      hide: ({ checkList }: { checkList: Array<string> }) =>
+      hide: ({ checkList }: { checkList: string[] }) =>
         !checkList.includes("勾选列")
     },
     {
       label: "序号",
       type: "index",
       width: 70,
-      hide: ({ checkList }: { checkList: Array<string> }) =>
+      hide: ({ checkList }: { checkList: string[] }) =>
         !checkList.includes("序号列")
     },
     {
@@ -151,14 +151,14 @@ export function useHook() {
       type: "selection",
       width: 55,
       align: "left",
-      hide: ({ checkList }: { checkList: Array<string> }) =>
+      hide: ({ checkList }: { checkList: string[] }) =>
         !checkList.includes("勾选列")
     },
     {
       label: "序号",
       type: "index",
       width: 70,
-      hide: ({ checkList }: { checkList: Array<string> }) =>
+      hide: ({ checkList }: { checkList: string[] }) =>
         !checkList.includes("序号列")
     },
     {
@@ -192,14 +192,14 @@ export function useHook() {
       type: "selection",
       width: 55,
       align: "left",
-      hide: ({ checkList }: { checkList: Array<string> }) =>
+      hide: ({ checkList }: { checkList: string[] }) =>
         !checkList.includes("勾选列")
     },
     {
       label: "序号",
       type: "index",
       width: 70,
-      hide: ({ checkList }: { checkList: Array<string> }) =>
+      hide: ({ checkList }: { checkList: string[] }) =>
         !checkList.includes("序号列")
     },
     {
@@ -331,7 +331,7 @@ export function useHook() {
   }
 
   function submitEditForm() {
-    editFormRef.value.validate((valid, fields) => {
+    editFormRef.value?.validate((valid, fields) => {
       if (!valid) {
         console.log("error submit!", fields);
         return;
@@ -450,7 +450,7 @@ export function useHook() {
     });
   }
 
-  const resetForm = formEl => {
+  const resetForm = (formEl: FormInstance | undefined) => {
     if (!formEl) return;
     formEl.resetFields();
     onSearch();

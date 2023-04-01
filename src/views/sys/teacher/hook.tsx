@@ -28,7 +28,7 @@ export function useQuestion() {
     status: ""
   });
   // 表格数据
-  const dataList = ref([]);
+  const dataList = ref<User[]>([]);
   // 表格加载状态
   const loading = ref(true);
   // 表格分页
@@ -44,13 +44,15 @@ export function useQuestion() {
       type: "selection",
       width: 55,
       align: "left",
-      hide: ({ checkList }) => !checkList.includes("勾选列")
+      hide: ({ checkList }: { checkList: string[] }) =>
+        !checkList.includes("勾选列")
     },
     {
       label: "序号",
       type: "index",
       width: 70,
-      hide: ({ checkList }) => !checkList.includes("序号列")
+      hide: ({ checkList }: { checkList: string[] }) =>
+        !checkList.includes("序号列")
     },
     {
       label: "ID",
@@ -256,7 +258,7 @@ export function useQuestion() {
   // 弹出编辑对话框
   function showEditDialog(editType: "create" | "edit", row?: User) {
     editFormType.value = editType;
-    if (editFormType.value === "edit") {
+    if (editFormType.value === "edit" && row) {
       editDialogTitle.value = "编辑用户";
       editForm.id = row?.id;
       editForm.name = row?.name;
@@ -295,7 +297,7 @@ export function useQuestion() {
 
   // 创建用户/更新用户信息
   function submitEditForm() {
-    editFormRef.value.validate((valid, fields) => {
+    editFormRef.value?.validate((valid, fields) => {
       if (!valid) {
         console.log("error submit!", fields);
         return;
@@ -361,7 +363,7 @@ export function useQuestion() {
 
   // 修改密码
   function submitPasswordEditForm() {
-    editPasswordFormRef.value.validate((valid, fields) => {
+    editPasswordFormRef.value?.validate((valid, fields) => {
       if (!valid) {
         console.log("error submit!", fields);
         return;
@@ -421,7 +423,7 @@ export function useQuestion() {
     onSearch();
   }
 
-  function handleSelectionChange(val) {
+  function handleSelectionChange(val: User[]) {
     console.log("handleSelectionChange", val);
   }
 
@@ -442,7 +444,7 @@ export function useQuestion() {
     });
   }
 
-  const resetForm = formEl => {
+  const resetForm = (formEl: FormInstance | undefined) => {
     if (!formEl) return;
     formEl.resetFields();
     onSearch();

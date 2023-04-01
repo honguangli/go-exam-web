@@ -318,7 +318,13 @@ const {
                   getQuestionSort(0, questionIndex) + '. ' + question.content
                 "
               >
+                <el-empty
+                  v-if="question.id === 0"
+                  description="待选择试题"
+                  style="padding: 0"
+                />
                 <el-radio-group
+                  v-else
                   :model-value="getChoiceSingleRight(question.options)"
                   readonly
                   class="clear-both"
@@ -406,7 +412,13 @@ const {
                   getQuestionSort(1, questionIndex) + '. ' + question.content
                 "
               >
+                <el-empty
+                  v-if="question.id === 0"
+                  description="待选择试题"
+                  style="padding: 0"
+                />
                 <el-checkbox-group
+                  v-else
                   :model-value="getChoiceMultiRight(question.options)"
                   readonly
                 >
@@ -493,7 +505,13 @@ const {
                   getQuestionSort(2, questionIndex) + '. ' + question.content
                 "
               >
+                <el-empty
+                  v-if="question.id === 0"
+                  description="待选择试题"
+                  style="padding: 0"
+                />
                 <el-radio-group
+                  v-else
                   :model-value="getJudgeRight(question.options)"
                   readonly
                 >
@@ -649,7 +667,13 @@ const {
                   getQuestionSort(5, questionIndex) + '. ' + question.content
                 "
               >
+                <el-empty
+                  v-if="question.id === 0"
+                  description="待选择试题"
+                  style="padding: 0"
+                />
                 <el-input
+                  v-else
                   type="textarea"
                   minlength="1"
                   maxlength="5000"

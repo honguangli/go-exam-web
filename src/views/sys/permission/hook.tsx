@@ -36,9 +36,9 @@ export function useHook() {
     meta_title: ""
   });
   // 表格数据
-  const dataList = ref([]);
+  const dataList = ref<Permission[]>([]);
   // 树形选项
-  const dataTree = ref([]);
+  const dataTree = ref<Permission[]>([]);
   // 表格加载状态
   const loading = ref(true);
   // 表格分页
@@ -54,13 +54,15 @@ export function useHook() {
       type: "selection",
       width: 55,
       align: "left",
-      hide: ({ checkList }) => !checkList.includes("勾选列")
+      hide: ({ checkList }: { checkList: string[] }) =>
+        !checkList.includes("勾选列")
     },
     {
       label: "序号",
       type: "index",
       width: 70,
-      hide: ({ checkList }) => !checkList.includes("序号列")
+      hide: ({ checkList }: { checkList: string[] }) =>
+        !checkList.includes("序号列")
     },
     {
       label: "权限名称",
@@ -334,7 +336,7 @@ export function useHook() {
   // 弹出编辑对话框
   function showEditDialog(editType: "create" | "edit", row?: Permission) {
     editFormType.value = editType;
-    if (editFormType.value === "edit") {
+    if (editFormType.value === "edit" && row) {
       editDialogTitle.value = "编辑权限";
       editForm.id = row?.id;
       editForm.type = row?.type;
@@ -384,7 +386,7 @@ export function useHook() {
 
   // 创建/更新信息
   function submitEditForm() {
-    editFormRef.value.validate((valid, fields) => {
+    editFormRef.value?.validate((valid, fields) => {
       if (!valid) {
         console.log("error submit!", fields);
         return;
@@ -503,7 +505,7 @@ export function useHook() {
     onSearch();
   }
 
-  function handleSelectionChange(val) {
+  function handleSelectionChange(val: Permission[]) {
     console.log("handleSelectionChange", val);
   }
 
@@ -516,7 +518,28 @@ export function useHook() {
       dataTree.value = [
         {
           id: 0,
-          meta_title: "无"
+          type: 0,
+          pid: 0,
+          code: "",
+          status: 0,
+          path: "",
+          name: "",
+          component: "",
+          redirect: "",
+          meta_title: "无",
+          meta_icon: "",
+          meta_extra_icon: "",
+          meta_show_link: 0,
+          meta_show_parent: 0,
+          meta_keep_alive: 0,
+          meta_frame_src: "",
+          meta_frame_loading: 0,
+          meta_hidden_tag: 0,
+          meta_rank: 0,
+          create_time: 0,
+          update_time: 0,
+          memo: "",
+          children: []
         },
         ...trees
       ];
@@ -526,7 +549,7 @@ export function useHook() {
     });
   }
 
-  const resetForm = formEl => {
+  const resetForm = (formEl: FormInstance | undefined) => {
     if (!formEl) return;
     formEl.resetFields();
     onSearch();
