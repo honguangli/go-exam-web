@@ -20,6 +20,8 @@ const {
   columns,
   dataList,
   pagination,
+  subjectList,
+  knowledgeList,
   editDialogVisible,
   editDialogTitle,
   editFormRef,
@@ -738,12 +740,7 @@ const {
       destroy-on-close
     >
       <el-scrollbar max-height="60vh">
-        <el-form
-          ref="aiFormRef"
-          :model="aiForm"
-          :rules="aiRule"
-          label-position="top"
-        >
+        <el-form ref="aiFormRef" :model="aiForm" label-position="top">
           <el-form-item prop="name" label="名称">
             <el-input
               v-model="aiForm.name"
@@ -752,6 +749,44 @@ const {
               placeholder="请输入试卷名称"
               style="width: 80%"
             />
+          </el-form-item>
+          <el-form-item
+            prop="subject_id"
+            :rules="aiRule.subject_id"
+            label="科目"
+          >
+            <el-select
+              v-model="aiForm.subject_id"
+              placeholder="请选择科目"
+              style="width: 50%"
+            >
+              <el-option label="请选择" :value="0" />
+              <el-option
+                v-for="(item, index) in subjectList"
+                :key="index"
+                :label="item.name"
+                :value="item.id"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item
+            prop="knowledge_ids"
+            :rules="aiRule.knowledge_ids"
+            label="知识点"
+          >
+            <el-select
+              v-model="aiForm.knowledge_ids"
+              multiple
+              placeholder="请选择知识点"
+              style="width: 50%"
+            >
+              <el-option
+                v-for="(item, index) in knowledgeList"
+                :key="index"
+                :label="item.name"
+                :value="item.id"
+              />
+            </el-select>
           </el-form-item>
           <el-form-item prop="score" label="总分（完成题型设置后系统自动计算）">
             <el-input

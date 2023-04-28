@@ -32,6 +32,7 @@ const Question = {
 const Paper = {
   QueryList: prefix + "/paper/list",
   QueryDetail: prefix + "/paper/detail",
+  Gen: prefix + "/paper/gen",
   Create: prefix + "/paper/create",
   Update: prefix + "/paper/update",
   Delete: prefix + "/paper/delete"

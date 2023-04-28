@@ -13,6 +13,17 @@ import { DeletePaper } from "@/api/exam/modules/paper/delete";
 import { FormInstance, FormRules } from "element-plus";
 import { QuestionType } from "@/api/exam/models/question";
 import { QuestionOption } from "@/api/exam/models/question_option";
+import {
+  QuerySubjectList,
+  QuerySubjectListResponse
+} from "@/api/exam/modules/subject/query_list";
+import { Subject } from "@/api/exam/models/subject";
+import { Knowledge } from "@/api/exam/models/knowledge";
+import {
+  QueryKnowledgeList,
+  QueryKnowledgeListResponse
+} from "@/api/exam/modules/knowledge/query_list";
+import { GenPaper } from "@/api/exam/modules/paper/gen";
 
 export function useHook() {
   // 筛选表单
@@ -97,6 +108,12 @@ export function useHook() {
     }
   ];
 
+  // 科目列表
+  const subjectList: Ref<Array<Subject>> = ref([]);
+
+  // 知识点列表
+  const knowledgeList: Ref<Array<Knowledge>> = ref([]);
+
   // 编辑对话框
   const editDialogVisible = ref(false);
   const editDialogTitle = ref("新增试卷");
@@ -143,13 +160,35 @@ export function useHook() {
   const aiDialogTitle = ref("智能组卷");
   // 组卷表单
   const aiFormRef = ref<FormInstance>();
-  const aiForm = reactive({
-    id: 0,
+  const aiForm = reactive<{
+    name: string;
+    subject_id: number;
+    knowledge_ids: Array<number>;
+    score: number;
+    pass_score: number;
+    difficulty: number;
+    choice_single_num: number;
+    choice_single_score: number;
+    choice_multi_num: number;
+    choice_multi_score: number;
+    judge_num: number;
+    judge_score: number;
+    blank_single_num: number;
+    blank_single_score: number;
+    blank_multi_num: number;
+    blank_multi_score: number;
+    answer_single_num: number;
+    answer_single_score: number;
+    answer_multi_num: number;
+    answer_multi_score: number;
+    memo: string;
+  }>({
     name: "",
+    subject_id: 0,
+    knowledge_ids: [],
     score: 0,
     pass_score: 0,
-    difficulty: 0.5,
-    memo: "",
+    difficulty: 0.6,
     choice_single_num: 0,
     choice_single_score: 2,
     choice_multi_num: 0,
@@ -163,7 +202,8 @@ export function useHook() {
     answer_single_num: 0,
     answer_single_score: 10,
     answer_multi_num: 0,
-    answer_multi_score: 20
+    answer_multi_score: 20,
+    memo: ""
   });
   const aiRule = reactive<FormRules>({
     name: [
@@ -171,6 +211,20 @@ export function useHook() {
         required: true,
         max: 50,
         message: "请输入不超过50字符的试卷名称",
+        trigger: "blur"
+      }
+    ],
+    subject_id: [
+      {
+        required: true,
+        message: "请选择科目",
+        trigger: "blur"
+      }
+    ],
+    knowledge_ids: [
+      {
+        required: true,
+        message: "请选择知识点",
         trigger: "blur"
       }
     ]
@@ -336,6 +390,71 @@ export function useHook() {
         console.log("error submit!", fields);
         return;
       }
+      console.log("submit", aiForm);
+      // 创建
+      GenPaper({
+        name: aiForm.name,
+        subject_id: aiForm.subject_id,
+        knowledge_ids: aiForm.knowledge_ids.join(","),
+        score: aiForm.score,
+        pass_score: aiForm.pass_score,
+        difficulty: aiForm.difficulty,
+        choice_single_num: aiForm.choice_single_num,
+        choice_single_score: aiForm.choice_single_score,
+        choice_multi_num: aiForm.choice_multi_num,
+        choice_multi_score: aiForm.choice_multi_score,
+        judge_num: aiForm.judge_num,
+        judge_score: aiForm.judge_score,
+        blank_single_num: aiForm.blank_single_num,
+        blank_single_score: aiForm.blank_single_score,
+        blank_multi_num: aiForm.blank_multi_num,
+        blank_multi_score: aiForm.blank_multi_score,
+        answer_single_num: aiForm.answer_single_num,
+        answer_single_score: aiForm.answer_single_score,
+        answer_multi_num: aiForm.answer_multi_num,
+        answer_multi_score: aiForm.answer_multi_score,
+        memo: ""
+      })
+        .then(res => {
+          handleResponse(res, () => {
+            message(res.msg, {
+              type: "success"
+            });
+            aiDialogVisible.value = false;
+            onSearch();
+          });
+        })
+        .catch(err => {
+          console.log(err);
+          message("操作失败", {
+            type: "error"
+          });
+        });
+      return;
+    });
+  }
+
+  async function querySubjectList() {
+    const res = await QuerySubjectList({
+      name: searchForm.name,
+      limit: 1000,
+      offset: 0
+    });
+
+    handleResponse(res, (data: QuerySubjectListResponse) => {
+      subjectList.value = data.list;
+    });
+  }
+
+  async function queryKnowledgeList() {
+    const res = await QueryKnowledgeList({
+      name: searchForm.name,
+      limit: 1000,
+      offset: 0
+    });
+
+    handleResponse(res, (data: QueryKnowledgeListResponse) => {
+      knowledgeList.value = data.list;
     });
   }
 
@@ -1097,6 +1216,8 @@ export function useHook() {
 
   onMounted(() => {
     onSearch();
+    querySubjectList();
+    queryKnowledgeList();
     setData();
   });
 
@@ -1134,6 +1255,8 @@ export function useHook() {
     columns,
     dataList,
     pagination,
+    subjectList,
+    knowledgeList,
     editDialogVisible,
     editDialogTitle,
     editFormRef,
