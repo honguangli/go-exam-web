@@ -11,6 +11,7 @@ import Role from "@iconify-icons/ri/admin-line";
 import Search from "@iconify-icons/ep/search";
 import Refresh from "@iconify-icons/ep/refresh";
 import AddFill from "@iconify-icons/ri/add-circle-line";
+import Select from "@iconify-icons/ep/select";
 
 const formRef = ref();
 const {
@@ -19,6 +20,12 @@ const {
   columns,
   dataList,
   pagination,
+  searchPaperForm,
+  paperListTableRef,
+  paperListDataList,
+  paperListLoading,
+  paperListPagination,
+  paperListColumns,
   classListTableRef,
   classListDataList,
   classListLoading,
@@ -31,6 +38,8 @@ const {
   pushClassColumns,
   editDialogVisible,
   editDialogTitle,
+  paperListDialogTitle,
+  paperListDialogVisible,
   classListDialogTitle,
   classListDialogVisible,
   pushClassDialogTitle,
@@ -39,12 +48,15 @@ const {
   editForm,
   editRule,
   onSearch,
+  onSearchPaperList,
   onSearchPlanClassList,
   onSearchClassList,
   resetForm,
   showEditDialog,
+  showPaperListDialog,
   showPlanClassListDialog,
   showPushClassDialog,
+  selectPaper,
   submitEditForm,
   submitDeleteClass,
   submitPushClass,
@@ -52,6 +64,8 @@ const {
   handleSizeChange,
   handleCurrentChange,
   handleSelectionChange,
+  handlePaperListSizeChange,
+  handlePaperListCurrentChange,
   handleClassListSizeChange,
   handleClassListCurrentChange,
   handlePushClassSizeChange,
@@ -206,20 +220,25 @@ const {
           />
         </el-form-item>
         <el-form-item prop="paper_id" label="试卷">
-          <el-select
-            v-model.number="editForm.paper_id"
+          <el-input
+            v-model="editForm.paper_name"
             placeholder="请选择试卷"
-            style="width: 50%"
+            style="width: 80%"
+            readonly
           >
-            <el-option label="C语言程序设计" :value="0" />
-            <el-option label="Zone two" :value="2" />
-          </el-select>
+            <template #append
+              ><el-button type="primary" @click="showPaperListDialog"
+                >选择</el-button
+              ></template
+            >
+          </el-input>
         </el-form-item>
         <el-form-item prop="start_time" label="开始时间">
           <el-date-picker
             v-model="editForm.start_time"
             type="datetime"
-            value-format="timestamp"
+            value-format="X"
+            :default-time="new Date(2000, 1, 1, 9, 0, 0)"
             placeholder="请选择开始考试时间"
             style="width: 50%"
           />
@@ -228,7 +247,8 @@ const {
           <el-date-picker
             v-model="editForm.end_time"
             type="datetime"
-            value-format="timestamp"
+            value-format="X"
+            :default-time="new Date(2000, 1, 1, 17, 0, 0)"
             placeholder="请选择结束考试时间"
             style="width: 50%"
           />
@@ -255,6 +275,86 @@ const {
           <el-button type="primary" @click="submitEditForm">提交</el-button>
         </span>
       </template>
+    </el-dialog>
+
+    <el-dialog
+      v-model="paperListDialogVisible"
+      :title="paperListDialogTitle"
+      width="80vw"
+      draggable
+      center
+      align-center
+      destroy-on-close
+    >
+      <el-scrollbar max-height="80vh">
+        <el-form
+          :inline="true"
+          :model="searchPaperForm"
+          class="bg-bg_color w-[99/100] pl-8 pt-4"
+        >
+          <el-form-item label="名称：" prop="name">
+            <el-input
+              v-model="searchPaperForm.name"
+              placeholder="请输入名称"
+              clearable
+              class="!w-[200px]"
+            />
+          </el-form-item>
+          <el-form-item>
+            <el-button
+              type="primary"
+              :icon="useRenderIcon(Search)"
+              :loading="paperListLoading"
+              @click="onSearchPaperList"
+            >
+              搜索
+            </el-button>
+          </el-form-item>
+        </el-form>
+        <PureTableBar
+          title="试卷列表"
+          @refresh="onSearchPaperList"
+          :tableRef="paperListTableRef?.getTableRef()"
+          :check-list="['勾选列']"
+        >
+          <template v-slot="{ size, checkList }">
+            <pure-table
+              border
+              ref="paperListTableRef"
+              align-whole="center"
+              showOverflowTooltip
+              table-layout="auto"
+              :loading="paperListLoading"
+              :size="size"
+              :data="paperListDataList"
+              :columns="paperListColumns"
+              :checkList="checkList"
+              row-key="id"
+              :pagination="paperListPagination"
+              :paginationSmall="size === 'small' ? true : false"
+              :header-cell-style="{
+                background: 'var(--el-table-row-hover-bg-color)',
+                color: 'var(--el-text-color-primary)'
+              }"
+              @page-size-change="handlePaperListSizeChange"
+              @page-current-change="handlePaperListCurrentChange"
+            >
+              <template #operation="{ row }">
+                <el-button
+                  class="reset-margin"
+                  link
+                  type="primary"
+                  :size="size"
+                  :icon="useRenderIcon(Select)"
+                  @click="selectPaper(row)"
+                >
+                  选择
+                </el-button>
+              </template>
+            </pure-table>
+          </template>
+        </PureTableBar>
+      </el-scrollbar>
     </el-dialog>
 
     <el-dialog

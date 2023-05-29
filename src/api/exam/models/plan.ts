@@ -12,6 +12,7 @@ export type Plan = {
   create_time: number; // int
   update_time: number; // int
   memo: string; // string
+  paper_name: string; // string
 };
 
 // 状态

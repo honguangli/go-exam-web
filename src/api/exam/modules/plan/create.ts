@@ -9,9 +9,6 @@ export interface CreatePlanParam {
   start_time: number; // int
   end_time: number; // int
   duration: number; // int
-  publish_time: number; // int
-  status: number; // int
-  query_grade: number; // int
   memo: string; // string
 }
 

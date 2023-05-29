@@ -10,8 +10,7 @@ import { CreatePlan } from "@/api/exam/modules/plan/create";
 import {
   formatPlanStatusText,
   getPlanStatusTagType,
-  Plan,
-  PlanStatus
+  Plan
 } from "@/api/exam/models/plan";
 import { UpdatePlan } from "@/api/exam/modules/plan/update";
 import { DeletePlan } from "@/api/exam/modules/plan/delete";
@@ -34,6 +33,11 @@ import {
 import { PushPlanClass } from "@/api/exam/modules/plan/push_class";
 import { DeletePlanClass } from "@/api/exam/modules/plan/delete_class";
 import { dayjs } from "@/utils/dayjs";
+import { Paper, PaperStatus } from "@/api/exam/models/paper";
+import {
+  QueryPaperList,
+  QueryPaperListResponse
+} from "@/api/exam/modules/paper/query_list";
 
 export function useHook() {
   // 筛选表单
@@ -128,6 +132,63 @@ export function useHook() {
       label: "操作",
       fixed: "right",
       width: 220,
+      slot: "operation"
+    }
+  ];
+
+  // 试卷表格
+  const paperListTableRef = ref();
+  // 筛选表单
+  const searchPaperForm = reactive({
+    name: ""
+  });
+  // 表格数据
+  const paperListDataList: Ref<Array<Paper>> = ref([]);
+  // 表格加载状态
+  const paperListLoading = ref(true);
+  // 表格分页
+  const paperListPagination = reactive<PaginationProps>({
+    total: 0,
+    pageSize: 10,
+    currentPage: 1,
+    background: true
+  });
+  // 表格列
+  const paperListColumns: TableColumnList = [
+    {
+      label: "ID",
+      prop: "id",
+      minWidth: 100
+    },
+    {
+      label: "试卷名称",
+      prop: "name",
+      minWidth: 200
+    },
+    {
+      label: "难度",
+      prop: "difficulty",
+      minWidth: 150
+    },
+    {
+      label: "总分",
+      prop: "score",
+      minWidth: 150
+    },
+    {
+      label: "及格分",
+      prop: "pass_score",
+      minWidth: 150
+    },
+    {
+      label: "备注",
+      prop: "memo",
+      minWidth: 200
+    },
+    {
+      label: "操作",
+      fixed: "right",
+      width: 260,
       slot: "operation"
     }
   ];
@@ -242,12 +303,10 @@ export function useHook() {
     id: 0,
     name: "",
     paper_id: 0,
-    start_time: 0,
-    end_time: 0,
-    duration: 0,
-    publish_time: 0,
-    status: PlanStatus.Draft,
-    query_grade: 0,
+    paper_name: "",
+    start_time: "",
+    end_time: "",
+    duration: 120,
     memo: ""
   });
   const editRule = reactive<FormRules>({
@@ -255,19 +314,47 @@ export function useHook() {
       {
         required: true,
         max: 50,
-        message: "请输入不超过50字符的知识点名称",
+        message: "请输入不超过50字符的考试名称",
         trigger: "blur"
       }
     ],
-    desc: [
+    start_time: [
+      {
+        required: true,
+        message: "请选择考试开始时间",
+        trigger: "blur"
+      }
+    ],
+    end_time: [
+      {
+        required: true,
+        message: "请选择考试结束时间",
+        trigger: "blur"
+      },
+      {
+        message: "考试结束时间不能小于开始时间",
+        validator: (_rule: any, value: string) => {
+          if (parseInt(value) <= parseInt(editForm.start_time)) {
+            return new Error("考试结束时间不能小于开始时间");
+          }
+          return true;
+        },
+        trigger: "blur"
+      }
+    ],
+    memo: [
       {
         required: false,
         max: 255,
-        message: "请输入知识点说明",
+        message: "请输入不超过255字符的考试计划备注说明",
         trigger: "blur"
       }
     ]
   });
+
+  // 选择试卷对话框
+  const paperListDialogTitle = ref("试卷列表");
+  const paperListDialogVisible = ref(false);
 
   // 班级列表对话框
   const classListDialogTitle = ref("班级列表");
@@ -294,27 +381,29 @@ export function useHook() {
       editForm.id = row?.id;
       editForm.name = row?.name;
       editForm.paper_id = row?.paper_id;
-      editForm.start_time = row?.start_time;
-      editForm.end_time = row?.end_time;
+      editForm.paper_name = row?.paper_name;
+      editForm.start_time = row?.start_time + "";
+      editForm.end_time = row?.end_time + "";
       editForm.duration = row?.duration;
-      editForm.publish_time = row?.publish_time;
-      editForm.status = row?.status;
-      editForm.query_grade = row?.query_grade;
       editForm.memo = row?.memo;
     } else {
       editDialogTitle.value = "新增考试计划";
       editForm.id = 0;
       editForm.name = "";
       editForm.paper_id = 0;
-      editForm.start_time = 0;
-      editForm.end_time = 0;
-      editForm.duration = 0;
-      editForm.publish_time = 0;
-      editForm.status = PlanStatus.Draft;
-      editForm.query_grade = 0;
+      editForm.paper_name = "";
+      editForm.start_time = "";
+      editForm.end_time = "";
+      editForm.duration = 120;
       editForm.memo = "";
     }
     editDialogVisible.value = true;
+  }
+
+  // 弹出选择试卷对话框
+  function showPaperListDialog() {
+    onSearchPaperList();
+    paperListDialogVisible.value = true;
   }
 
   // 弹出考试班级对话框
@@ -342,12 +431,9 @@ export function useHook() {
         CreatePlan({
           name: editForm.name,
           paper_id: editForm.paper_id,
-          start_time: editForm.start_time,
-          end_time: editForm.end_time,
+          start_time: parseInt(editForm.start_time),
+          end_time: parseInt(editForm.end_time),
           duration: editForm.duration,
-          publish_time: editForm.publish_time,
-          status: editForm.status,
-          query_grade: editForm.query_grade,
           memo: editForm.memo
         })
           .then(res => {
@@ -373,12 +459,9 @@ export function useHook() {
         id: editForm.id,
         name: editForm.name,
         paper_id: editForm.paper_id,
-        start_time: editForm.start_time,
-        end_time: editForm.end_time,
+        start_time: parseInt(editForm.start_time),
+        end_time: parseInt(editForm.end_time),
         duration: editForm.duration,
-        publish_time: editForm.publish_time,
-        status: editForm.status,
-        query_grade: editForm.query_grade,
         memo: editForm.memo
       })
         .then(res => {
@@ -430,7 +513,7 @@ export function useHook() {
     onSearch();
   }
 
-  function handleSelectionChange(val) {
+  function handleSelectionChange(val: any) {
     console.log("handleSelectionChange", val);
   }
 
@@ -456,6 +539,42 @@ export function useHook() {
     onSearch();
   };
 
+  // 试卷
+  function handlePaperListSizeChange(val: number) {
+    paperListPagination.pageSize = val;
+    onSearchPaperList();
+  }
+
+  function handlePaperListCurrentChange(val: any) {
+    paperListPagination.currentPage = val;
+    onSearchPaperList();
+  }
+
+  // 查询试卷列表
+  async function onSearchPaperList() {
+    paperListLoading.value = true;
+    const res = await QueryPaperList({
+      name: searchPaperForm.name,
+      status: PaperStatus.Release,
+      limit: paperListPagination.pageSize,
+      offset:
+        (paperListPagination.currentPage - 1) * paperListPagination.pageSize
+    });
+    handleResponse(res, (data: QueryPaperListResponse) => {
+      paperListDataList.value = data.list;
+      paperListPagination.total = data.total;
+      paperListLoading.value = false;
+    });
+  }
+
+  // 选择试卷
+  function selectPaper(paper: Paper) {
+    editForm.paper_id = paper.id;
+    editForm.paper_name = paper.name;
+    paperListDialogVisible.value = false;
+  }
+
+  // 考试班级
   function handleClassListSizeChange(val: number) {
     classListPagination.pageSize = val;
     onSearchPlanClassList();
@@ -591,6 +710,12 @@ export function useHook() {
     columns,
     dataList,
     pagination,
+    searchPaperForm,
+    paperListTableRef,
+    paperListDataList,
+    paperListLoading,
+    paperListPagination,
+    paperListColumns,
     classListTableRef,
     classListDataList,
     classListLoading,
@@ -603,6 +728,8 @@ export function useHook() {
     pushClassColumns,
     editDialogVisible,
     editDialogTitle,
+    paperListDialogTitle,
+    paperListDialogVisible,
     classListDialogTitle,
     classListDialogVisible,
     pushClassDialogTitle,
@@ -612,12 +739,15 @@ export function useHook() {
     editRule,
     buttonClass,
     onSearch,
+    onSearchPaperList,
     onSearchPlanClassList,
     onSearchClassList,
     resetForm,
     showEditDialog,
+    showPaperListDialog,
     showPlanClassListDialog,
     showPushClassDialog,
+    selectPaper,
     submitEditForm,
     submitDeleteClass,
     submitPushClass,
@@ -625,6 +755,8 @@ export function useHook() {
     handleSizeChange,
     handleCurrentChange,
     handleSelectionChange,
+    handlePaperListSizeChange,
+    handlePaperListCurrentChange,
     handleClassListSizeChange,
     handleClassListCurrentChange,
     handlePushClassSizeChange,
