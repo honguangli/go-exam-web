@@ -11,7 +11,9 @@ import ArrowUp from "@iconify-icons/ep/arrow-up";
 import ArrowDown from "@iconify-icons/ep/arrow-down";
 import Search from "@iconify-icons/ep/search";
 import Refresh from "@iconify-icons/ep/refresh";
+import View from "@iconify-icons/ep/view";
 import AddFill from "@iconify-icons/ri/add-circle-line";
+import { PaperStatus } from "@/api/exam/models/paper";
 
 const formRef = ref();
 const {
@@ -38,6 +40,7 @@ const {
   showAiEditDialog,
   submitEditForm,
   submitAiEditForm,
+  publishPaper,
   handleDelete,
   handleSizeChange,
   handleCurrentChange,
@@ -129,7 +132,18 @@ const {
               link
               type="primary"
               :size="size"
+              :icon="useRenderIcon(View)"
+              @click="showEditDialog('edit', row)"
+            >
+              查看
+            </el-button>
+            <el-button
+              class="reset-margin"
+              link
+              type="primary"
+              :size="size"
               :icon="useRenderIcon(EditPen)"
+              :disabled="row.status != PaperStatus.Draft"
               @click="showEditDialog('edit', row)"
             >
               编辑
@@ -142,6 +156,7 @@ const {
                   type="primary"
                   :size="size"
                   :icon="useRenderIcon(Delete)"
+                  :disabled="row.status != PaperStatus.Draft"
                 >
                   删除
                 </el-button>
@@ -153,6 +168,8 @@ const {
               type="primary"
               :size="size"
               :icon="useRenderIcon(EditPen)"
+              :disabled="row.status != PaperStatus.Draft"
+              @click="publishPaper(row)"
             >
               发布
             </el-button>

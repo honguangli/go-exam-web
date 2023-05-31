@@ -10,7 +10,8 @@ import { CreatePlan } from "@/api/exam/modules/plan/create";
 import {
   formatPlanStatusText,
   getPlanStatusTagType,
-  Plan
+  Plan,
+  PlanStatus
 } from "@/api/exam/models/plan";
 import { UpdatePlan } from "@/api/exam/modules/plan/update";
 import { DeletePlan } from "@/api/exam/modules/plan/delete";
@@ -361,6 +362,7 @@ export function useHook() {
   const classListDialogTitle = ref("班级列表");
   const classListDialogVisible = ref(false);
   const classListPlanID = ref(0);
+  const classListPlanStatus = ref(PlanStatus.Draft);
 
   // 添加班级对话框
   const pushClassDialogTitle = ref("添加班级");
@@ -410,6 +412,7 @@ export function useHook() {
   // 弹出考试班级对话框
   function showPlanClassListDialog(row: Plan) {
     classListPlanID.value = row.id;
+    classListPlanStatus.value = row.status;
     onSearchPlanClassList();
     classListDialogVisible.value = true;
   }
@@ -713,6 +716,8 @@ export function useHook() {
               message(res.msg, {
                 type: "success"
               });
+              // 刷新考试计划列表
+              onSearch();
             });
           })
           .catch(err => {
@@ -759,6 +764,7 @@ export function useHook() {
     paperListDialogVisible,
     classListDialogTitle,
     classListDialogVisible,
+    classListPlanStatus,
     pushClassDialogTitle,
     pushClassDialogVisible,
     editFormRef,

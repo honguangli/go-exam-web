@@ -7,10 +7,15 @@ import {
   QueryPaperListResponse
 } from "@/api/exam/modules/paper/query_list";
 import { CreatePaper } from "@/api/exam/modules/paper/create";
-import { Paper, PaperStatus } from "@/api/exam/models/paper";
+import {
+  formatPaperStatusText,
+  getPaperStatusTagType,
+  Paper,
+  PaperStatus
+} from "@/api/exam/models/paper";
 import { UpdatePaper } from "@/api/exam/modules/paper/update";
 import { DeletePaper } from "@/api/exam/modules/paper/delete";
-import { FormInstance, FormRules } from "element-plus";
+import { ElMessageBox, FormInstance, FormRules } from "element-plus";
 import { QuestionType } from "@/api/exam/models/question";
 import { QuestionOption } from "@/api/exam/models/question_option";
 import {
@@ -24,6 +29,7 @@ import {
   QueryKnowledgeListResponse
 } from "@/api/exam/modules/knowledge/query_list";
 import { GenPaper } from "@/api/exam/modules/paper/gen";
+import { PublishPaper } from "@/api/exam/modules/paper/publish";
 
 export function useHook() {
   // 筛选表单
@@ -87,13 +93,15 @@ export function useHook() {
       label: "状态",
       prop: "status",
       minWidth: 150,
-      formatter: ({ status }) => {
-        if (status === 0) {
-          return "已发布";
-        } else {
-          return "未发布";
-        }
-      }
+      cellRenderer: ({ row, props }) => (
+        <el-tag
+          size={props.size}
+          type={getPaperStatusTagType(row.status)}
+          effect="plain"
+        >
+          {formatPaperStatusText(row.status)}
+        </el-tag>
+      )
     },
     {
       label: "备注",
@@ -103,7 +111,7 @@ export function useHook() {
     {
       label: "操作",
       fixed: "right",
-      width: 260,
+      width: 320,
       slot: "operation"
     }
   ];
@@ -1214,6 +1222,34 @@ export function useHook() {
     editForm.answer_multi_score = 30;
   }
 
+  // 发布试卷
+  function publishPaper(row: Paper) {
+    ElMessageBox.confirm("您是否确认发布选中的考试计划?")
+      .then(() => {
+        PublishPaper({
+          id: row.id
+        })
+          .then(res => {
+            handleResponse(res, () => {
+              message(res.msg, {
+                type: "success"
+              });
+              // 刷新试卷列表
+              onSearch();
+            });
+          })
+          .catch(err => {
+            console.log(err);
+            message("操作失败", {
+              type: "error"
+            });
+          });
+      })
+      .catch(() => {
+        // catch error
+      });
+  }
+
   onMounted(() => {
     onSearch();
     querySubjectList();
@@ -1274,6 +1310,7 @@ export function useHook() {
     showAiEditDialog,
     submitEditForm,
     submitAiEditForm,
+    publishPaper,
     handleDelete,
     handleSizeChange,
     handleCurrentChange,

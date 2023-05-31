@@ -6,11 +6,11 @@ export default [
     url: "/login",
     method: "post",
     response: ({ body }) => {
-      if (body.username === "2023030902") {
+      if (body.username === "20230531005") {
         return {
           success: true,
           data: {
-            username: "2023030902",
+            username: "20230531005",
             // 一个用户可能有多个角色
             roles: ["admin"],
             accessToken: "eyJhbGciOiJIUzUxMiJ9.admin",

@@ -10,13 +10,7 @@ const {
   columns,
   dataList,
   pagination,
-  editDialogVisible,
-  editDialogTitle,
-  editFormRef,
-  editForm,
-  editRule,
   onSearch,
-  submitEditForm,
   handleSizeChange,
   handleCurrentChange,
   handleSelectionChange,
@@ -63,52 +57,6 @@ const {
         </pure-table>
       </template>
     </PureTableBar>
-
-    <el-dialog
-      v-model="editDialogVisible"
-      :title="editDialogTitle"
-      width="50%"
-      draggable
-      center
-      align-center
-      destroy-on-close
-    >
-      <el-form
-        ref="editFormRef"
-        :model="editForm"
-        :rules="editRule"
-        label-position="top"
-      >
-        <el-form-item prop="name" label="名称">
-          <el-input
-            v-model="editForm.name"
-            minlength="1"
-            maxlength="50"
-            show-word-limit
-            placeholder="请输入科目名称"
-            style="width: 80%"
-          />
-        </el-form-item>
-        <el-form-item prop="desc" label="说明">
-          <el-input
-            v-model="editForm.desc"
-            type="textarea"
-            minlength="1"
-            maxlength="255"
-            show-word-limit
-            placeholder="请输入科目说明"
-            :autosize="{ minRows: 3, maxRows: 6 }"
-            style="width: 80%"
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="editDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitEditForm">提交</el-button>
-        </span>
-      </template>
-    </el-dialog>
   </div>
 </template>
 

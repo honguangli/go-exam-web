@@ -35,6 +35,7 @@ const Paper = {
   Gen: prefix + "/paper/gen",
   Create: prefix + "/paper/create",
   Update: prefix + "/paper/update",
+  Publish: prefix + "/paper/publish",
   Delete: prefix + "/paper/delete"
 };
 
@@ -49,6 +50,14 @@ const Plan = {
   QueryClassList: prefix + "/plan/class/list",
   PushClass: prefix + "/plan/class/push",
   DeleteClass: prefix + "/plan/class/delete"
+};
+
+// 成绩
+const Grade = {
+  QueryList: prefix + "/grade/list",
+  QueryDetail: prefix + "/grade/detail",
+  QueryUserExamList: prefix + "/grade/user/exam/list",
+  QueryUesrGradeList: prefix + "/grade/user/grade/list"
 };
 
 // 权限
@@ -104,6 +113,7 @@ export default {
   Question,
   Paper,
   Plan,
+  Grade,
   Permission,
   Role,
   User,

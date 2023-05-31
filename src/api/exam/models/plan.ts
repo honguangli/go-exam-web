@@ -43,7 +43,7 @@ export const formatPlanStatusText = (v: PlanStatus) => {
 export const getPlanStatusTagType = (v: PlanStatus) => {
   switch (v) {
     case PlanStatus.Draft:
-      return "";
+      return "info";
     case PlanStatus.Running:
       return "primary";
     case PlanStatus.Cancel:

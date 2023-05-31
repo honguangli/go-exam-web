@@ -12,6 +12,7 @@ import Search from "@iconify-icons/ep/search";
 import Refresh from "@iconify-icons/ep/refresh";
 import AddFill from "@iconify-icons/ri/add-circle-line";
 import Select from "@iconify-icons/ep/select";
+import { PlanStatus } from "@/api/exam/models/plan";
 
 const formRef = ref();
 const {
@@ -42,6 +43,7 @@ const {
   paperListDialogVisible,
   classListDialogTitle,
   classListDialogVisible,
+  classListPlanStatus,
   pushClassDialogTitle,
   pushClassDialogVisible,
   editFormRef,
@@ -143,6 +145,7 @@ const {
               type="primary"
               :size="size"
               :icon="useRenderIcon(EditPen)"
+              :disabled="row.status != PlanStatus.Draft"
               @click="showEditDialog('edit', row)"
             >
               编辑
@@ -155,6 +158,7 @@ const {
                   type="primary"
                   :size="size"
                   :icon="useRenderIcon(Delete)"
+                  :disabled="row.status != PlanStatus.Draft"
                 >
                   删除
                 </el-button>
@@ -178,6 +182,7 @@ const {
                   </el-dropdown-item>
                   <el-dropdown-item
                     :icon="useRenderIcon(EditPen)"
+                    :disabled="row.status != PlanStatus.Draft"
                     @click="publishPlan(row)"
                   >
                     发布
@@ -381,6 +386,7 @@ const {
             <el-button
               type="primary"
               :icon="useRenderIcon(AddFill)"
+              :disabled="classListPlanStatus != PlanStatus.Draft"
               @click="showPushClassDialog"
             >
               添加班级
@@ -388,6 +394,7 @@ const {
             <el-button
               type="danger"
               :icon="useRenderIcon(AddFill)"
+              :disabled="classListPlanStatus != PlanStatus.Draft"
               @click="submitDeleteClass"
             >
               删除班级
