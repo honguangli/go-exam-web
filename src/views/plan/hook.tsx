@@ -14,7 +14,7 @@ import {
 } from "@/api/exam/models/plan";
 import { UpdatePlan } from "@/api/exam/modules/plan/update";
 import { DeletePlan } from "@/api/exam/modules/plan/delete";
-import { FormInstance, FormRules } from "element-plus";
+import { ElMessageBox, FormInstance, FormRules } from "element-plus";
 import {
   QueryPlanClassList,
   QueryPlanClassListResponse
@@ -38,6 +38,7 @@ import {
   QueryPaperList,
   QueryPaperListResponse
 } from "@/api/exam/modules/paper/query_list";
+import { PublishPlan } from "@/api/exam/modules/plan/publish";
 
 export function useHook() {
   // 筛选表单
@@ -407,7 +408,7 @@ export function useHook() {
   }
 
   // 弹出考试班级对话框
-  function showPlanClassListDialog(row: Class) {
+  function showPlanClassListDialog(row: Plan) {
     classListPlanID.value = row.id;
     onSearchPlanClassList();
     classListDialogVisible.value = true;
@@ -700,6 +701,32 @@ export function useHook() {
       });
   }
 
+  // 发布考试计划
+  function publishPlan(row: Plan) {
+    ElMessageBox.confirm("您是否确认发布选中的考试计划?")
+      .then(() => {
+        PublishPlan({
+          id: row.id
+        })
+          .then(res => {
+            handleResponse(res, () => {
+              message(res.msg, {
+                type: "success"
+              });
+            });
+          })
+          .catch(err => {
+            console.log(err);
+            message("操作失败", {
+              type: "error"
+            });
+          });
+      })
+      .catch(() => {
+        // catch error
+      });
+  }
+
   onMounted(() => {
     onSearch();
   });
@@ -751,6 +778,7 @@ export function useHook() {
     submitEditForm,
     submitDeleteClass,
     submitPushClass,
+    publishPlan,
     handleDelete,
     handleSizeChange,
     handleCurrentChange,

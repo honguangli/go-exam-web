@@ -20,6 +20,7 @@ import {
   formatUserStatusText,
   getUserStatusTagType,
   User,
+  UserStatus,
   UserType
 } from "@/api/exam/models/user";
 import { ClassUser } from "@/api/exam/models/class_user";
@@ -495,7 +496,7 @@ export function useQuestion() {
     pushUserLoading.value = true;
     const res = await QueryUserList({
       type: UserType.Student,
-      status: 0,
+      status: UserStatus.Enable,
       limit: pushUserPagination.pageSize,
       offset: (pushUserPagination.currentPage - 1) * pushUserPagination.pageSize
     });

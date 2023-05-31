@@ -60,6 +60,7 @@ const {
   submitEditForm,
   submitDeleteClass,
   submitPushClass,
+  publishPlan,
   handleDelete,
   handleSizeChange,
   handleCurrentChange,
@@ -175,7 +176,10 @@ const {
                   >
                     班级管理
                   </el-dropdown-item>
-                  <el-dropdown-item :icon="useRenderIcon(EditPen)">
+                  <el-dropdown-item
+                    :icon="useRenderIcon(EditPen)"
+                    @click="publishPlan(row)"
+                  >
                     发布
                   </el-dropdown-item>
                   <el-dropdown-item :icon="useRenderIcon(EditPen)">

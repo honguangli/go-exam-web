@@ -44,6 +44,7 @@ const Plan = {
   QueryDetail: prefix + "/plan/detail",
   Create: prefix + "/plan/create",
   Update: prefix + "/plan/update",
+  Publish: prefix + "/plan/publish",
   Delete: prefix + "/plan/delete",
   QueryClassList: prefix + "/plan/class/list",
   PushClass: prefix + "/plan/class/push",
