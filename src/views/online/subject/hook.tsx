@@ -5,9 +5,9 @@ import { FormInstance } from "element-plus";
 import { dayjs } from "@/utils/dayjs";
 import router from "@/router";
 import {
-  QueryUserExamList,
-  QueryUserExamListResponse
-} from "@/api/exam/modules/grade/query_user_exam_list";
+  QueryExamList,
+  QueryExamListResponse
+} from "@/api/exam/modules/exam/query_list";
 import { Grade } from "@/api/exam/models/grade";
 import { useUserStoreHook } from "@/store/modules/user";
 
@@ -113,36 +113,17 @@ export function useHook() {
 
   async function onSearch() {
     loading.value = true;
-    const res = await QueryUserExamList({
+    const res = await QueryExamList({
       user_name: useUserStoreHook().username || "",
       limit: pagination.pageSize,
       offset: (pagination.currentPage - 1) * pagination.pageSize
     });
 
-    handleResponse(res, (data: QueryUserExamListResponse) => {
+    handleResponse(res, (data: QueryExamListResponse) => {
       dataList.value = data.list;
       pagination.total = data.total;
       loading.value = false;
     });
-
-    // dataList.value = [
-    //   {
-    //     id: 1,
-    //     name: "2023上半年C语言程序设计",
-    //     paper_id: 1,
-    //     start_time: 1679277600,
-    //     end_time: 1679824800,
-    //     duration: 90,
-    //     publish_time: 0,
-    //     status: 1,
-    //     query_grade: 0,
-    //     create_time: 0,
-    //     update_time: 0,
-    //     memo: ""
-    //   }
-    // ];
-    // pagination.total = 1;
-    // loading.value = false;
   }
 
   const resetForm = (formEl: FormInstance | undefined) => {

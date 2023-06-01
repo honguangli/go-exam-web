@@ -4,21 +4,21 @@ import { genParam, ResponseBody } from "../../client/client";
 import { Grade } from "../../models/grade";
 
 // 查询考生待考列表 参数
-export interface QueryUserExamListParam {
+export interface QueryExamListParam {
   user_name: string;
   limit: number;
   offset: number;
 }
 
 // 查询考生待考列表 响应
-export interface QueryUserExamListResponse {
+export interface QueryExamListResponse {
   list: Array<Grade>;
   total: number;
 }
 
 // 查询考生待考列表
-export const QueryUserExamList = (param: QueryUserExamListParam) => {
-  return http.request<ResponseBody>("post", Api.Grade.QueryUserExamList, {
+export const QueryExamList = (param: QueryExamListParam) => {
+  return http.request<ResponseBody>("post", Api.Exam.QueryList, {
     data: genParam(param)
   });
 };

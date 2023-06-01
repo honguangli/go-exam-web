@@ -1,21 +1,22 @@
-import { message } from "@/utils/message";
 import { type PaginationProps } from "@pureadmin/table";
-import { reactive, ref, computed, onMounted } from "vue";
+import { reactive, ref, onMounted, Ref } from "vue";
 import { handleResponse } from "@/api/exam/client/client";
-import { CreateSubject } from "@/api/exam/modules/subject/create";
-import { Subject } from "@/api/exam/models/subject";
-import { UpdateSubject } from "@/api/exam/modules/subject/update";
-import { DeleteSubject } from "@/api/exam/modules/subject/delete";
-import { FormInstance, FormRules } from "element-plus";
+import { FormInstance } from "element-plus";
+import {
+  QueryUserGradeList,
+  QueryUserGradeListResponse
+} from "@/api/exam/modules/grade/query_user_grade_list";
+import { useUserStoreHook } from "@/store/modules/user";
+import { Grade, GradeStatus } from "@/api/exam/models/grade";
+import { PlanQueryGrade } from "@/api/exam/models/plan";
 
 export function useHook() {
   // 筛选表单
   const searchForm = reactive({
-    name: "",
-    type: ""
+    name: ""
   });
   // 表格数据
-  const dataList = ref([]);
+  const dataList: Ref<Array<Grade>> = ref([]);
   // 表格加载状态
   const loading = ref(true);
   // 表格分页
@@ -50,11 +51,24 @@ export function useHook() {
       label: "考试成绩",
       prop: "status",
       minWidth: 200,
-      formatter: ({ status, score }) => {
-        if (status === 0) {
-          return "缺考";
+      formatter: ({ plan_query_grade, status, score }) => {
+        switch (status) {
+          case GradeStatus.Default:
+          case GradeStatus.UnSubmit:
+            return "缺考";
+          case GradeStatus.Submit:
+          case GradeStatus.Marking:
+            return "未公布";
+          case GradeStatus.Marded:
+            if (plan_query_grade !== PlanQueryGrade.Enable) {
+              return "未公布";
+            }
+            return score;
+          case GradeStatus.Cancel:
+            return "考试取消";
+          default:
+            return "未公布";
         }
-        return score;
       }
     },
     // {
@@ -76,140 +90,6 @@ export function useHook() {
     }
   ];
 
-  // 编辑对话框
-  const editDialogVisible = ref(false);
-  const editDialogTitle = ref("新增科目");
-  // 编辑表单
-  const editFormRef = ref<FormInstance>();
-  const editForm = reactive({
-    id: 0,
-    name: "",
-    desc: ""
-  });
-  const editRule = reactive<FormRules>({
-    name: [
-      {
-        required: true,
-        max: 50,
-        message: "请输入不超过50字符的科目名称",
-        trigger: "blur"
-      }
-    ],
-    desc: [
-      {
-        required: false,
-        max: 255,
-        message: "请输入不超过255字符数的科目说明",
-        trigger: "blur"
-      }
-    ]
-  });
-
-  const buttonClass = computed(() => {
-    return [
-      "!h-[20px]",
-      "reset-margin",
-      "!text-gray-500",
-      "dark:!text-white",
-      "dark:hover:!text-primary"
-    ];
-  });
-
-  function showEditDialog(type: "create" | "edit", row?: Subject) {
-    if (type === "edit" && row) {
-      editDialogVisible.value = true;
-      editDialogTitle.value = "编辑科目";
-      editForm.id = row?.id;
-      editForm.name = row?.name;
-      editForm.desc = row?.desc;
-    } else {
-      editDialogVisible.value = true;
-      editDialogTitle.value = "新增科目";
-    }
-  }
-
-  function submitEditForm() {
-    editFormRef.value?.validate((valid, fields) => {
-      if (!valid) {
-        console.log("error submit!", fields);
-        return;
-      }
-
-      if (editForm.id === 0) {
-        // 创建
-        CreateSubject({
-          name: editForm.name,
-          desc: editForm.desc
-        })
-          .then(res => {
-            handleResponse(res, () => {
-              message(res.msg, {
-                type: "success"
-              });
-              editDialogVisible.value = false;
-              editForm.id = 0;
-              editForm.name = "";
-              editForm.desc = "";
-              onSearch();
-            });
-          })
-          .catch(err => {
-            console.log(err);
-            message("操作失败", {
-              type: "error"
-            });
-          });
-        return;
-      }
-
-      // 更新
-      UpdateSubject({
-        id: editForm.id,
-        name: editForm.name,
-        desc: editForm.desc
-      })
-        .then(res => {
-          handleResponse(res, () => {
-            message(res.msg, {
-              type: "success"
-            });
-            editDialogVisible.value = false;
-            editForm.id = 0;
-            editForm.name = "";
-            editForm.desc = "";
-            onSearch();
-          });
-        })
-        .catch(err => {
-          console.log(err);
-          message("操作失败", {
-            type: "error"
-          });
-        });
-    });
-  }
-
-  function handleDelete(row: Subject) {
-    // 删除
-    DeleteSubject({
-      id: row.id
-    })
-      .then(res => {
-        handleResponse(res, () => {
-          message(res.msg, {
-            type: "success"
-          });
-          onSearch();
-        });
-      })
-      .catch(err => {
-        console.log(err);
-        message("操作失败", {
-          type: "error"
-        });
-      });
-  }
-
   function handleSizeChange(val: number) {
     pagination.pageSize = val;
     onSearch();
@@ -220,42 +100,23 @@ export function useHook() {
     onSearch();
   }
 
-  function handleSelectionChange(val) {
+  function handleSelectionChange(val: any) {
     console.log("handleSelectionChange", val);
   }
 
   async function onSearch() {
     loading.value = true;
-    // const res = await QuerySubjectList({
-    //   name: searchForm.name,
-    //   limit: pagination.pageSize,
-    //   offset: (pagination.currentPage - 1) * pagination.pageSize
-    // });
+    const res = await QueryUserGradeList({
+      user_name: useUserStoreHook().username || "",
+      limit: pagination.pageSize,
+      offset: (pagination.currentPage - 1) * pagination.pageSize
+    });
 
-    // handleResponse(res, (data: QuerySubjectListResponse) => {
-    //   dataList.value = data.list;
-    //   pagination.total = data.total;
-    //   loading.value = false;
-    // });
-
-    dataList.value = [
-      {
-        name: "2023上半年C语言程序设计",
-        score: 98,
-        start_time: 1678948823,
-        end_time: 0,
-        status: 1
-      },
-      {
-        name: "2023上半年高等数学（二）",
-        score: 98,
-        start_time: 1678948823,
-        end_time: 0,
-        status: 0
-      }
-    ];
-    pagination.total = dataList.value.length;
-    loading.value = false;
+    handleResponse(res, (data: QueryUserGradeListResponse) => {
+      dataList.value = data.list;
+      pagination.total = data.total;
+      loading.value = false;
+    });
   }
 
   const resetForm = (formEl: FormInstance | undefined) => {
@@ -274,17 +135,8 @@ export function useHook() {
     columns,
     dataList,
     pagination,
-    editDialogVisible,
-    editDialogTitle,
-    editFormRef,
-    editForm,
-    editRule,
-    buttonClass,
     onSearch,
     resetForm,
-    showEditDialog,
-    submitEditForm,
-    handleDelete,
     handleSizeChange,
     handleCurrentChange,
     handleSelectionChange

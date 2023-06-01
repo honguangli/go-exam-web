@@ -1,29 +1,22 @@
 <script setup lang="ts">
-import { ref } from "vue";
+// import { ref } from "vue";
 import { useHook } from "./hook";
 import { PureTableBar } from "@/components/RePureTableBar";
-import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+// import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 
-import View from "@iconify-icons/ep/view";
-import Search from "@iconify-icons/ep/search";
-import Refresh from "@iconify-icons/ep/refresh";
+// import View from "@iconify-icons/ep/view";
+// import Search from "@iconify-icons/ep/search";
+// import Refresh from "@iconify-icons/ep/refresh";
 
-const formRef = ref();
+//const formRef = ref();
 const {
-  searchForm,
+  //searchForm,
   loading,
   columns,
   dataList,
   pagination,
-  editDialogVisible,
-  editDialogTitle,
-  editFormRef,
-  editForm,
-  editRule,
   onSearch,
-  resetForm,
-  showEditDialog,
-  submitEditForm,
+  //resetForm,
   handleSizeChange,
   handleCurrentChange,
   handleSelectionChange
@@ -32,7 +25,7 @@ const {
 
 <template>
   <div class="main">
-    <el-form
+    <!-- <el-form
       ref="formRef"
       :inline="true"
       :model="searchForm"
@@ -59,7 +52,7 @@ const {
           重置
         </el-button>
       </el-form-item>
-    </el-form>
+    </el-form> -->
 
     <PureTableBar title="成绩列表" @refresh="onSearch">
       <template v-slot="{ size, checkList }">
@@ -82,68 +75,9 @@ const {
           @selection-change="handleSelectionChange"
           @page-size-change="handleSizeChange"
           @page-current-change="handleCurrentChange"
-        >
-          <template #operation="{ row }">
-            <el-button
-              class="reset-margin"
-              link
-              type="primary"
-              :size="size"
-              :icon="useRenderIcon(View)"
-              @click="showEditDialog('edit', row)"
-            >
-              详情
-            </el-button>
-          </template>
-        </pure-table>
+        />
       </template>
     </PureTableBar>
-
-    <el-dialog
-      v-model="editDialogVisible"
-      :title="editDialogTitle"
-      width="50%"
-      draggable
-      center
-      align-center
-      destroy-on-close
-    >
-      <el-form
-        ref="editFormRef"
-        :model="editForm"
-        :rules="editRule"
-        label-position="top"
-      >
-        <el-form-item prop="name" label="名称">
-          <el-input
-            v-model="editForm.name"
-            minlength="1"
-            maxlength="50"
-            show-word-limit
-            placeholder="请输入科目名称"
-            style="width: 80%"
-          />
-        </el-form-item>
-        <el-form-item prop="desc" label="说明">
-          <el-input
-            v-model="editForm.desc"
-            type="textarea"
-            minlength="1"
-            maxlength="255"
-            show-word-limit
-            placeholder="请输入科目说明"
-            :autosize="{ minRows: 3, maxRows: 6 }"
-            style="width: 80%"
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="editDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitEditForm">提交</el-button>
-        </span>
-      </template>
-    </el-dialog>
   </div>
 </template>
 

@@ -2,12 +2,26 @@
 import { useHook } from "./hook";
 import { QuestionType } from "@/api/exam/models/question";
 
-const { questionList, questionBlock, submitEditForm } = useHook();
+const {
+  loading,
+  canExam,
+  failureMsg,
+  detail,
+  remainTime,
+  questionList,
+  questionBlock,
+  formatDuration,
+  formatRemainDuration,
+  hasAnswer,
+  submitEditForm
+} = useHook();
 </script>
 
 <template>
   <div class="main">
-    <el-space :fill="true" wrap style="width: 100%">
+    <el-skeleton v-if="loading" :rows="5" animated />
+    <el-empty v-else-if="!canExam" :description="failureMsg" />
+    <el-space v-else :fill="true" wrap style="width: 100%">
       <el-card class="box-card">
         <el-descriptions
           class="margin-top"
@@ -20,31 +34,33 @@ const { questionList, questionBlock, submitEditForm } = useHook();
             <template #label>
               <div class="cell-item">考试名称</div>
             </template>
-            计算机组网技术
+            {{ detail.plan_name }}
           </el-descriptions-item>
           <el-descriptions-item>
             <template #label>
               <div class="cell-item">考生账号</div>
             </template>
-            2023030902
+            {{ detail.user_name }}
           </el-descriptions-item>
           <el-descriptions-item>
             <template #label>
-              <div class="cell-item">考试姓名</div>
+              <div class="cell-item">考生姓名</div>
             </template>
-            张三
+            {{ detail.user_true_name }}
           </el-descriptions-item>
           <el-descriptions-item>
             <template #label>
               <div class="cell-item">考试时长</div>
             </template>
-            90分钟
+            {{ formatDuration(detail.plan_duration) }}
           </el-descriptions-item>
           <el-descriptions-item>
             <template #label>
               <div class="cell-item">剩余时长</div>
             </template>
-            <el-tag type="danger" size="large">88分钟23秒</el-tag>
+            <el-tag type="danger" size="large">{{
+              formatRemainDuration(remainTime)
+            }}</el-tag>
           </el-descriptions-item>
         </el-descriptions>
       </el-card>
@@ -64,7 +80,7 @@ const { questionList, questionBlock, submitEditForm } = useHook();
           <el-col :span="24">
             <template v-for="(item, index) in questionList" :key="index">
               <el-tag
-                v-if="item.answer === '' && item.answer_multi.length === 0"
+                v-if="!hasAnswer(item)"
                 class="ml-2"
                 type="info"
                 effect="dark"
@@ -86,7 +102,8 @@ const { questionList, questionBlock, submitEditForm } = useHook();
       <el-card class="box-card">
         <el-form ref="editFormRef" label-position="top">
           <template v-for="(item, index) in questionBlock" :key="index">
-            <template v-if="item.type === QuestionType.ChoiceSingle">
+            <template v-if="item.list.length == 0" />
+            <template v-else-if="item.type === QuestionType.ChoiceSingle">
               <p style="margin-bottom: 10px">
                 {{ item.title }}（共{{ item.list.length }}题，每题{{
                   item.score
@@ -98,13 +115,13 @@ const { questionList, questionBlock, submitEditForm } = useHook();
                 prop="name"
                 :label="question.sort + '. ' + question.content"
               >
-                <el-radio-group v-model="question.answer">
+                <el-radio-group v-model="question.answer_option_id">
                   <el-space direction="vertical" alignment="start">
                     <el-radio
                       v-for="(option, optionIndex) in question.options"
                       :key="optionIndex"
-                      :label="option.tag"
-                      >{{ option.content }}</el-radio
+                      :label="option.id"
+                      >{{ option.tag + "、" + option.content }}</el-radio
                     >
                   </el-space>
                 </el-radio-group>
@@ -122,19 +139,19 @@ const { questionList, questionBlock, submitEditForm } = useHook();
                 prop="name"
                 :label="question.sort + '. ' + question.content"
               >
-                <el-checkbox-group v-model="question.answer_multi">
+                <el-checkbox-group v-model="question.answer_option_ids">
                   <el-space direction="vertical" alignment="start">
                     <el-checkbox
                       v-for="(option, optionIndex) in question.options"
                       :key="optionIndex"
-                      :label="option.tag"
-                      >{{ option.content }}</el-checkbox
+                      :label="option.id"
+                      >{{ option.tag + "、" + option.content }}</el-checkbox
                     >
                   </el-space>
                 </el-checkbox-group>
               </el-form-item>
             </template>
-            <template v-if="item.type === QuestionType.Judge">
+            <template v-else-if="item.type === QuestionType.Judge">
               <p style="margin-bottom: 10px">
                 {{ item.title }}（共{{ item.list.length }}题，每题{{
                   item.score
@@ -146,19 +163,19 @@ const { questionList, questionBlock, submitEditForm } = useHook();
                 prop="name"
                 :label="question.sort + '. ' + question.content"
               >
-                <el-radio-group v-model="question.answer">
+                <el-radio-group v-model="question.answer_option_id">
                   <el-space direction="vertical" alignment="start">
                     <el-radio
                       v-for="(option, optionIndex) in question.options"
                       :key="optionIndex"
-                      :label="option.tag"
-                      >{{ option.content }}</el-radio
+                      :label="option.id"
+                      >{{ option.tag + "、" + option.content }}</el-radio
                     >
                   </el-space>
                 </el-radio-group>
               </el-form-item>
             </template>
-            <template v-if="item.type === QuestionType.AnswerSingle">
+            <template v-else-if="item.type === QuestionType.AnswerSingle">
               <p style="margin-bottom: 10px">
                 {{ item.title }}（共{{ item.list.length }}题，每题{{
                   item.score
@@ -171,7 +188,7 @@ const { questionList, questionBlock, submitEditForm } = useHook();
                 :label="question.sort + '. ' + question.content"
               >
                 <el-input
-                  v-model="question.answer"
+                  v-model="question.answer_content"
                   type="textarea"
                   minlength="1"
                   maxlength="5000"

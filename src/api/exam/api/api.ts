@@ -52,12 +52,18 @@ const Plan = {
   DeleteClass: prefix + "/plan/class/delete"
 };
 
+// 考试
+const Exam = {
+  QueryList: prefix + "/exam/list",
+  Start: prefix + "/exam/start",
+  Submit: prefix + "/exam/submit"
+};
+
 // 成绩
 const Grade = {
   QueryList: prefix + "/grade/list",
   QueryDetail: prefix + "/grade/detail",
-  QueryUserExamList: prefix + "/grade/user/exam/list",
-  QueryUesrGradeList: prefix + "/grade/user/grade/list"
+  QueryUesrGradeList: prefix + "/grade/user/list"
 };
 
 // 权限
@@ -113,6 +119,7 @@ export default {
   Question,
   Paper,
   Plan,
+  Exam,
   Grade,
   Permission,
   Role,

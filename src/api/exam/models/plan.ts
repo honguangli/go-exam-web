@@ -23,6 +23,12 @@ export enum PlanStatus {
   End
 }
 
+// 成绩状态
+export enum PlanQueryGrade {
+  Disable,
+  Enable
+}
+
 // 格式化状态文本
 export const formatPlanStatusText = (v: PlanStatus) => {
   switch (v) {
